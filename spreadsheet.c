@@ -17,6 +17,103 @@
 #include <unistd.h>
 #include <regex.h>
 
+int spreadsheet_parse_cell_name(const Spreadsheet *sheet, const char *cell_name, int *out_row, int *out_col)
+{
+    // fprintf(stderr, "[DEBUG] Parsing cell name: %s\n", cell_name);
+    // We find the boundary between letters and digits
+    int i = 0;
+
+    while (isalpha((unsigned char)cell_name[i]))
+        i++;
+    if (i == 0)
+    {
+        // fprintf(stderr, "[ERROR] Invalid cell name\n %s\n", cell_name);
+        *out_row = *out_col = -1;
+        return 0;
+    }
+    char letters[64];
+    strncpy(letters, cell_name, i);
+    letters[i] = '\0';
+    *out_col = spreadsheet_letter_to_col(letters);
+
+    if (*out_col > sheet->cols || *out_col < 0)
+    {
+        // fprintf(stderr, "[ERROR] Invalid column\n");
+        *out_row = *out_col = -1;
+        return 0;
+    }
+    // Check valid row
+    if (cell_name[i] == '\0')
+    {
+        // fprintf(stderr, "[ERROR] Invalid cell name\n");
+        *out_row = *out_col = -1;
+        return 0;
+    }
+    int j = i;
+    while (cell_name[j] && isdigit((unsigned char)cell_name[j]))
+        j++;
+    if (cell_name[j] != '\0')
+    {
+        // fprintf(stderr, "[ERROR] Invalid cell name\n");
+        *out_row = *out_col = -1;
+        return 0;
+    }
+    *out_row = atoi(&cell_name[i]);
+    if (*out_row > sheet->rows || *out_row < 0)
+    {
+        // fprintf(stderr, "[ERROR] Invalid row\n");
+        *out_row = *out_col = -1;
+        return 0;
+    }
+    // fprintf(stderr, "[DEBUG] Parsed cell name: %d %d\n", *out_row, *out_col);
+    return 1;
+}
+
+/* ----------------
+   Range (e.g. A1:B2)
+   ---------------- */
+char **spreadsheet_parse_range(const Spreadsheet *sheet, const char *range_str, int *count)
+{
+    // fprintf(stderr, "[DEBUG] Parsing range: %s\n", range_str);
+    *count = 0;
+    char *copy = strdup(range_str);
+    char *colon = strchr(copy, ':');
+    if (!colon)
+    {
+        free(copy);
+        return NULL;
+    }
+    *colon = '\0';
+    const char *start = copy;
+    const char *end = colon + 1;
+
+    int start_row, start_col, end_row, end_col;
+    spreadsheet_parse_cell_name(sheet, start, &start_row, &start_col);
+    spreadsheet_parse_cell_name(sheet, end, &end_row, &end_col);
+    if (start_row > end_row || start_col > end_col)
+    {
+        free(copy);
+        return NULL;
+    }
+    int total = (end_row - start_row + 1) * (end_col - start_col + 1);
+    char **cells = (char **)malloc(sizeof(char *) * total);
+
+    int idx = 0;
+    for (int r = start_row; r <= end_row; r++)
+    {
+        for (int c = start_col; c <= end_col; c++)
+        {
+            char buf[64];
+            spreadsheet_get_cell_name(sheet, r, c, buf, sizeof(buf));
+            cells[idx] = strdup(buf);
+            idx++;
+        }
+    }
+    *count = total;
+    free(copy);
+    return cells;
+}
+
 int spreadsheet_evaluate_function(Spreadsheet *sheet, const char *func, const char *args, Cell *cell)
 {
     // fprintf(stderr, "[DEBUG] Evaluating function: %s(%s)\n", func, args);
