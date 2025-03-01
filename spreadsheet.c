@@ -708,6 +708,55 @@ int spreadsheet_evaluate_expression(Spreadsheet *sheet, const char *expr, Cell *
     }
 }
 
+void v_inorder_traversal_helper(OrderedSetNode *node, char **array, int *index)
+{
+    if (node == NULL)
+    {
+        return;
+    }
+
+    // Traverse the left subtree
+    v_inorder_traversal_helper(node->left, array, index);
+
+    // Visit the current node and add the key to the array
+    array[*index] = strdup(node->key); // Assuming strdup is available for deep copying
+    (*index)++;
+
+    // Traverse the right subtree
+    v_inorder_traversal_helper(node->right, array, index);
+}
+
+// Public function to collect all keys in an array
+int count_nodes(OrderedSetNode *node)
+{
+    if (node == NULL)
+        return 0;
+    return count_nodes(node->left) + count_nodes(node->right) + 1;
+}
+void v_orderedset_collect_keys(OrderedSet *set, char ***array, int *size)
+{
+
+    // fprintf(stderr, "[DEBUG]18\n");
+    // orderedset_print(set);
+    if (set == NULL || set->root == NULL)
+    {
+        *array = NULL;
+        *size = 0;
+        return;
+    }
+
+    // First, find the number of nodes in the set
+    *size = 0;
+
+    *size = count_nodes(set->root);
+
+    // Allocate memory for the array to store the keys;
+    *array = malloc(sizeof(char *) * (*size));
+    int index = 0;
+    // Perform inorder traversal and collect the keys in the array
+    v_inorder_traversal_helper(set->root, *array, &index);
+}
+
 int first_step_find_cycle(Spreadsheet *sheet, char *cell_name, int r1, int r2, int c1, int c2, int range_bool)
 {
 
