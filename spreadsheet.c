@@ -601,3 +601,237 @@ int spreadsheet_evaluate_expression(Spreadsheet *sheet, const char *expr, Cell *
     }
 }
 
+int is_valid_command(Spreadsheet *sheet, char **cell_name, char **formula)
+{
+    if (!sheet || !cell_name || !formula || !*cell_name || !*formula || **cell_name == '\0' || **formula == '\0')
+    {
+        return 0;
+    }
+    // Check if valid cell name
+    int r, c;
+    if (!spreadsheet_parse_cell_name(sheet, *cell_name, &r, &c))
+    {
+        return 0;
+    }
+    // Check if valid formula
+    if (!*formula || strlen(*formula) == 0)
+        return 0;
+    // fprintf(stderr, "[DEBUG] Evaluating expression: %s\n", expr);
+
+    // Check for function call pattern: FUNC(...)
+
+    regex_t funcRegex;
+    regcomp(&funcRegex, "^([A-Za-z]+)\\((.*)\\)$", REG_EXTENDED);
+    regmatch_t matches[3];
+    if (regexec(&funcRegex, *formula, 3, matches, 0) == 0)
+    {
+        char func[64], args0[256];
+        char *args = args0;
+        strncpy(func, *formula + matches[1].rm_so, matches[1].rm_eo - matches[1].rm_so);
+        func[matches[1].rm_eo - matches[1].rm_so] = '\0';
+        strncpy(args, *formula + matches[2].rm_so, matches[2].rm_eo - matches[2].rm_so);
+        args[matches[2].rm_eo - matches[2].rm_so] = '\0';
+        regfree(&funcRegex);
+        if (strcasecmp(func, "SLEEP") == 0)
+        {
+            if(args[0]=='\0'){
+                return 0;
+            }
+            // Check if args is a valid integer
+            char *endPtr = NULL;
+            long val = strtol(args, &endPtr, 10);
+            if (endPtr && *endPtr == '\0')
+            {
+                return 1;
+            }
+            if (args[0] == '-' || args[0] == '+')
+            {
+                args++;
+            }
+            int r;
+            int c;
+            if (spreadsheet_parse_cell_name(sheet, args, &r, &c))
+            {
+                return 1;
+            }
+            return 0;
+        }
+        else
+        {
+
+            char *copy = strdup(args);
+            char *colon = strchr(copy, ':');
+            if (!colon)
+            {
+                free(copy);
+                return 0;
+            }
+            *colon = '\0';
+            const char *start = copy;
+            const char *end = colon + 1;
+
+            int start_row, start_col, end_row, end_col;
+            if (!spreadsheet_parse_cell_name(sheet, start, &start_row, &start_col))
+            {
+                free(copy);
+                return 0;
+            }
+            if (!spreadsheet_parse_cell_name(sheet, end, &end_row, &end_col))
+            {
+                free(copy);
+                return 0;
+            }
+            if (start_row > end_row || start_col > end_col)
+            {
+                free(copy);
+                return 0;
+            }
+            if (strcasecmp(func, "MIN") != 0 && strcasecmp(func, "MAX") != 0 && strcasecmp(func, "SUM") != 0 && strcasecmp(func, "AVG") != 0 && strcasecmp(func, "STDEV") != 0)
+            {
+                free(copy);
+                return 0;
+            }
+            free(copy);
+        }
+        return 1;
+    }
+    regfree(&funcRegex);
+    // Check if the expr is a cell reference (e.g. A1)
+    regex_t cellRegex;
+    regcomp(&cellRegex, "^[A-Za-z]+[0-9]+$", REG_EXTENDED);
+    if (regexec(&cellRegex, *formula, 0, NULL, 0) == 0)
+    {
+        // It's a cell reference
+        regfree(&cellRegex);
+        int r, c;
+        if (spreadsheet_parse_cell_name(sheet, *formula, &r, &c))
+        {
+            return 1;
+        }
+        return 0;
+    }
+    regfree(&cellRegex);
+
+    // Check for arithmetic
+    // We'll do a naive approach: we find + - * / and split
+    char *expr = *formula;
+    int temp = strlen(expr);
+    int i = 0;
+    char flag = 0;
+    if (expr[i] == '+' || expr[i] == '-')
+    {
+        i++;
+        flag = 1;
+    }
+    if (expr[i] >= 48 && expr[i] <= 57)
+    {
+        int j = i;
+        while (j < temp && isdigit(expr[j]))
+        {
+            j++;
+        }
+        i = j;
+        // fprintf(stderr, "1 is an int\n");
+    }
+    else if (flag == 0 && expr[i] >= 65 && expr[i] <= 90)
+    {
+        int j = i;
+        while (j < temp && expr[j] >= 65 && expr[j] <= 90)
+        {
+            j++;
+        }
+        int k = j;
+        int row = 0;
+        while (k < temp && isdigit(expr[k]))
+        {
+            row = row * 10 + expr[k] - '0';
+            k++;
+        }
+        int temp_l = k - i;
+        char cell_name_[10];
+        strncpy(cell_name_, expr + i, temp_l);
+        cell_name_[temp_l] = '\0';
+        int r, c;
+        if (!spreadsheet_parse_cell_name(sheet, cell_name_, &r, &c))
+        {
+            return 0;
+        }
+        i = k;
+    }
+    else
+    {
+        return 0;
+    }
+    // fprintf(stderr, "i = %d, temp = %d", i, temp);
+    char operation;
+    if (i < temp)
+    {
+        // fprintf(stderr, "I came here\n");
+        operation = expr[i];
+        if (operation != '+' && operation != '-' && operation != '*' && operation != '/')
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        // fprintf(stderr, "valid command A1=1\n");
+        return 1;
+    }
+    i++;
+    // fprintf(stderr, "%d", i);
+    flag = 0;
+    if (expr[i] == '+' || expr[i] == '-')
+    {
+        i++;
+        flag = 1;
+    }
+    if (expr[i] >= 48 && expr[i] <= 57)
+    {
+        int j = i;
+        while (j < temp && isdigit(expr[j]))
+        {
+            j++;
+        }
+        i = j;
+    }
+    else if (flag == 0 && expr[i] >= 65 && expr[i] <= 90)
+    {
+        int j = i;
+        while (j < temp && expr[j] >= 65 && expr[j] <= 90)
+        {
+            j++;
+        }
+        int k = j;
+        int row = 0;
+        while (k < temp && isdigit(expr[k]))
+        {
+            row = row * 10 + expr[k] - '0';
+            k++;
+        }
+        int temp_l = k - i;
+        char cell_name_[10];
+        strncpy(cell_name_, expr + i, temp_l);
+        cell_name_[temp_l] = '\0';
+        int r, c;
+        if (!spreadsheet_parse_cell_name(sheet, cell_name_, &r, &c))
+        {
+            return 0;
+        }
+        i = k;
+    }
+    else
+    {
+        return 0;
+    }
+    if (i == temp)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+
+    return 0;
+}
