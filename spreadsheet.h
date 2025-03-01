@@ -32,7 +32,7 @@ int isNumeric(const char *str);
 
 int spreadsheet_evaluate_function(Spreadsheet *sheet, const char *func, const char *args, Cell* cell,const char*expr);
 int spreadsheet_evaluate_expression(Spreadsheet *sheet, const char *expr, Cell* cell);
-
+int rec_find_cycle_using_stack(Spreadsheet*sheet, int r1,int r2 ,int c1,int c2,int range_bool, OrderedSet *visited, Node **top);
 int first_step_find_cycle(Spreadsheet *sheet, char *cell_name, int r1,int r2 ,int c1,int c2,int range_bool);
 
 void spreadsheet_set_cell_value(Spreadsheet *sheet, char *cell_name, const char *formula, char *status_out, size_t status_size);
