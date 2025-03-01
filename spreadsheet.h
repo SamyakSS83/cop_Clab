@@ -37,7 +37,8 @@ int count_nodes(OrderedSetNode *node);
 void v_orderedset_collect_keys(OrderedSet *set, char ***array, int *size);
 int rec_find_cycle_using_stack(Spreadsheet*sheet, int r1,int r2 ,int c1,int c2,int range_bool, OrderedSet *visited, Node **top);
 int first_step_find_cycle(Spreadsheet *sheet, char *cell_name, int r1,int r2 ,int c1,int c2,int range_bool);
-
+void remove_old_dependents(Spreadsheet *sheet, const char *cell_name);
+int v_spreadsheet_update_dependencies(Spreadsheet *sheet, const char *cell_name, const char *formula);
 void spreadsheet_set_cell_value(Spreadsheet *sheet, char *cell_name, const char *formula, char *status_out, size_t status_size);
 void spreadsheet_display(Spreadsheet *sheet);
 
