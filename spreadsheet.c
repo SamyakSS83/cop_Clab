@@ -856,6 +856,130 @@ int first_step_find_cycle(Spreadsheet *sheet, char *cell_name, int r1, int r2, i
     return 0;
 }
 
+void remove_old_dependents(Spreadsheet *sheet, const char *cell_name)
+{
+    // Cell *cell = ordereddict_get(sheet->cells, cell_name);
+    int r_, c_;
+    spreadsheet_parse_cell_name(sheet, cell_name, &r_, &c_);
+    Cell *cell = sheet->cells[sheet->cols * (r_ - 1) + (c_ - 1)];
+
+    // OrderedSet *old_depends = orderedset_create();
+    char *formula = cell->formula;
+    if (formula == NULL)
+    {
+        return;
+    }
+    // fprintf(stderr, "[DEBUG]19\n");
+    char *cpy_formula = malloc(strlen(formula) + 1);
+    strcpy(cpy_formula, formula);
+
+    // ###
+    const char *ranges[] = {"MIN", "MAX", "AVG", "SUM", "STDEV"};
+    // start with this or not :
+    int i;
+    for (i = 0; i < 5; i++)
+    {
+        // fprintf(stderr,"entering loop %d time\n",i);
+        if (strncmp(cpy_formula, ranges[i], strlen(ranges[i])) == 0)
+        {
+            char *brack_sign = strchr(cpy_formula, '(');
+            const char *new_formula = brack_sign + 1;
+            int temp = strlen(new_formula);
+            // printf("%s",new_formula);
+            char only_range[100];
+            strncpy(only_range, new_formula, temp - 1);
+            only_range[temp - 1] = '\0';
+            // printf("%s", only_range);
+
+            int col1, row1, col2, row2;
+            char col_start[10], col_end[10];
+
+            // Parse range format like "A1:B3"
+            if (sscanf(cpy_formula, "%[A-Z]%d:%[A-Z]%d", col_start, &row1, col_end, &row2) == 4)
+            {
+                col1 = col_to_index(col_start);
+                col2 = col_to_index(col_end);
+                row1--; // Convert to 0-based index
+                row2--;
+                clock_t start = clock();
+                for (int r = row1; r <= row2; r++)
+                {
+                    for (int c = col1; c <= col2; c++)
+                    {
+                        char col_name[10];
+                        index_to_col(c, col_name);
+                        // printf("%s%d ", col_name, r + 1);
+                        char result[100];
+                        sprintf(result, "%s%d", col_name, r + 1);
+
+                        // char *ref = result;
+                        // printf("ref -> %s\n", ref);
+                        // Also add cell_name to ref->dependents
+                        // Cell *dep_cell = ordereddict_get(sheet->cells, ref);
+                        // int r_, c_;
+                        // spreadsheet_parse_cell_name(sheet, ref, &r_, &c_);
+                        Cell *dep_cell = sheet->cells[sheet->cols * (r - 1) + (c - 1)];
+                        if (!dep_cell)
+                        {
+                            // char * not_needed[64];
+                            // int r, c;
+                            // spreadsheet_parse_cell_name(sheet, ref, &r, &c);
+                            // dep_cell = cell_create(r, c);
+                            // ordereddict_insert(sheet->cells, ref, dep_cell);
+                            fprintf(stderr, "cell not found\n");
+                        }
+                        orderedset_remove(dep_cell->dependents, cell_name);
+
+                        // orderedset_insert(new_depends, result);
+                    }
+                    // printf("\n");
+                }
+                clock_t end = clock();
+                double time_taken = (double)(end - start) / CLOCKS_PER_SEC;
+                // printf("Time taken by loop in extract_visible_cell: %f\n", time_taken);
+            }
+            // else
+            // {
+            //     // fprintf(stderr, "Invalid formula format.\n");
+            //     return -1;
+            // }
+            // return 1;
+
+            // if (extract_visible_cells(only_range, new_depends) == -1)
+            // {
+            //     return -1;
+            // }
+            break;
+        }
+    }
+    // it is not of the range form then :
+    if (i >= 5)
+    {
+        // fprintf(stderr,"entering here i>=5 \n");
+        int r1, r2, c1, c2, range_bool;
+        find_depends(cpy_formula, sheet, &r1, &r2, &c1, &c2, &range_bool);
+        // v_orderedset_collect_keys(new_depends, &key, &size);
+
+        if (r1 > 0)
+        {
+            Cell *dep_cell = sheet->cells[sheet->cols * (r1 -1 ) + (c1 -1)];
+            orderedset_remove(dep_cell->dependents, cell_name);
+        }
+        if (r2 > 0)
+        {
+            Cell *dep_cell = sheet->cells[sheet->cols * (r2 -1) + (c2 -1)];
+            orderedset_remove(dep_cell->dependents, cell_name);
+        }
+
+        // printf("ref -> %s\n", ref);
+        // Also add cell_name to ref->dependents
+    }
+    // ###
+    free(cpy_formula);
+    // Free old dependencies
+    // orderedset_destroy(old_depends);
+}
+
 int v_spreadsheet_update_dependencies(Spreadsheet *sheet, const char *cell_name, const char *formula)
 {
     // fprintf(stderr, "[DEBUG] Updating dependencies for %s\n", cell_name);
