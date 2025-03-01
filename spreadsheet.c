@@ -856,6 +856,140 @@ int first_step_find_cycle(Spreadsheet *sheet, char *cell_name, int r1, int r2, i
     return 0;
 }
 
+int v_spreadsheet_update_dependencies(Spreadsheet *sheet, const char *cell_name, const char *formula)
+{
+    // fprintf(stderr, "[DEBUG] Updating dependencies for %s\n", cell_name);
+    // Cell *cell = ordereddict_get(sheet->cells, cell_name);
+    int r_, c_;
+    spreadsheet_parse_cell_name(sheet, cell_name, &r_, &c_);
+    // Cell *cell = sheet->cells[sheet->cols * (r_ - 1) + (c_ - 1)];
+    // Remove old dependencies
+    remove_old_dependents(sheet, cell_name);
+
+    // fprintf(stderr, "[DEBUG]14\n");
+
+    const char *ranges[] = {"MIN", "MAX", "AVG", "SUM", "STDEV"};
+    // start with this or not :
+    int i;
+    for (i = 0; i < 5; i++)
+    {
+        if (strncmp(formula, ranges[i], strlen(ranges[i])) == 0)
+        {
+            // fprintf(stderr, "%s\n", ranges[i]);
+            char *brack_sign = strchr(formula, '(');
+            const char *new_formula = brack_sign + 1;
+            int temp = strlen(new_formula);
+            // printf("%s",new_formula);
+            char only_range[100];
+            strncpy(only_range, new_formula, temp - 1);
+            only_range[temp - 1] = '\0';
+            // printf("%s", only_range);
+
+            int col1, row1, col2, row2;
+            char col_start[10], col_end[10];
+
+            // Parse range format like "A1:B3"
+            if (sscanf(only_range, "%[A-Z]%d:%[A-Z]%d", col_start, &row1, col_end, &row2) == 4)
+            {
+                col1 = col_to_index(col_start);
+                col2 = col_to_index(col_end);
+                row1--; // Convert to 0-based index
+                row2--;
+
+                if (col2 < col1)
+                {
+                    // fprintf(stderr, "Invalid formula format.\n");
+                    return -1;
+                }
+                else if (col1 == col2 && row2 < row1)
+                {
+                    // fprintf(stderr, "Invalid formula format.\n");
+                    return -1;
+                }
+
+                // printf("Extracting cells from range.. %s%d:%s%d\n", col_start, row1 + 1, col_end, row2 + 1);
+                // printf("%d %d %d %d\n",visible_row_start,visible_col_start,visible_col_end,visible_row_end);
+
+                // Iterate through the visible range
+                clock_t start = clock();
+                // fprintf(stderr, "range inside update depend..func %d %d \n %d %d\n", row1, col1, row2, col2);
+                for (int r = row1; r <= row2; r++)
+                {
+                    for (int c = col1; c <= col2; c++)
+                    {
+                        // printf("ref -> %s\n", ref);
+                        // Also add cell_name to ref->dependents
+                        // Cell *dep_cell = ordereddict_get(sheet->cells, ref);
+                        // int r_, c_;
+                        // spreadsheet_parse_cell_name(sheet, ref, &r_, &c_);
+                        Cell *dep_cell = sheet->cells[sheet->cols * (r) + (c)];
+                        if (!dep_cell)
+                        {
+                            // char * not_needed[64];
+                            // int r, c;
+                            // spreadsheet_parse_cell_name(sheet, ref, &r, &c);
+                            // dep_cell = cell_create(r, c);
+                            // ordereddict_insert(sheet->cells, ref, dep_cell);
+                            fprintf(stderr, "cell not found\n");
+                        }
+                        // fprintf(stderr, "%d %d %s\n", dep_cell->row, dep_cell->col, cell_name);
+                        orderedset_insert(dep_cell->dependents, cell_name);
+
+                        // orderedset_insert(new_depends, result);
+                    }
+                    // printf("\n");
+                }
+                clock_t end = clock();
+                double time_taken = (double)(end - start) / CLOCKS_PER_SEC;
+                // printf("Time taken by loop in extract_visible_cell: %f\n", time_taken);
+            }
+            // else
+            // {
+            //     // fprintf(stderr, "Invalid formula format.\n");
+            //     return -1;
+            // }
+            // return 1;
+
+            // if (extract_visible_cells(only_range, new_depends) == -1)
+            // {
+            //     return -1;
+            // }
+            // break;
+        }
+    }
+    // it is not of the range form then :
+    if (i >= 5)
+    {
+
+        int r1, r2, c1, c2, range_bool;
+        find_depends(formula, sheet, &r1, &r2, &c1, &c2, &range_bool);
+        // fprintf(stderr,"formula format in find_depends %s\n",formula);
+        // fprintf(stderr, "range inside update depend..func %d %d \n %d %d\n", r1, c1, r2, c2);
+        // v_orderedset_collect_keys(new_depends, &key, &size);
+
+        if (r1 > 0)
+        {
+            Cell *dep_cell = sheet->cells[sheet->cols * (r1-1) + (c1-1)];
+            orderedset_insert(dep_cell->dependents, cell_name);
+        }
+        if (r2 > 0)
+        {
+            Cell *dep_cell = sheet->cells[sheet->cols * (r2-1) + (c2-1)];
+            orderedset_insert(dep_cell->dependents, cell_name);
+        }
+
+        // printf("ref -> %s\n", ref);
+        // Also add cell_name to ref->dependents
+    }
+    // extract_visible_cells("MAX(A1:C5)", 0, 0, 10, 10);
+    // extract_visible_cells("MAX(D3:G7)", 2, 3, 10, 10);
+    return 0;
+
+    // fprintf(stderr, "[DEBUG]15\n");
+
+    // regfree(&refRegex);
+}
+
 
 void spreadsheet_set_cell_value(Spreadsheet *sheet, char *cell_name, const char *formula,
                                 char *status_out, size_t status_size)
