@@ -708,6 +708,45 @@ int spreadsheet_evaluate_expression(Spreadsheet *sheet, const char *expr, Cell *
     }
 }
 
+int first_step_find_cycle(Spreadsheet *sheet, char *cell_name, int r1, int r2, int c1, int c2, int range_bool)
+{
+
+    // Cell *cell = ordereddict_get(sheet->cells, cell_name);
+    int r_, c_;
+    spreadsheet_parse_cell_name(sheet, cell_name, &r_, &c_);
+    // Cell *cell = sheet->cells[sheet->cols * (r_ - 1) + (c_ - 1)];
+    // new
+    // fprintf(stderr, "lord vanshika\n");
+    // Cell * start = cell_name;
+    // fprintf(stderr, "[DEBUG]11\n");
+    OrderedSet *visited = orderedset_create();
+    // orderedset_print(new_depends);
+    // Cell *node_of_start = ordereddict_get(sheet->cells, start);
+    Cell *node_of_start = sheet->cells[sheet->cols * (r_ - 1) + (c_ - 1)];
+    if (!node_of_start){
+        orderedset_destroy(visited);
+        return 0;
+    }
+        
+         // start was never in rhs of any formula before there can't be cyclic dependency
+    Node *top = createNode(node_of_start);
+    // int xx = isEmpty(top);
+    // if (!xx)
+    //     fprintf(stderr, "created stack successfully\n");
+    if (rec_find_cycle_using_stack(sheet, r1, r2, c1, c2, range_bool, visited, &top))
+    {
+        // fprintf(stderr, "correct");
+        destroyStack(&top);
+        orderedset_destroy(visited);
+        return 1;
+    }
+    // fprintf(stderr, "[DEBUG]13\n");
+    destroyStack(&top);
+    orderedset_destroy(visited);
+    return 0;
+}
+
+
 void spreadsheet_set_cell_value(Spreadsheet *sheet, char *cell_name, const char *formula,
                                 char *status_out, size_t status_size)
 {
