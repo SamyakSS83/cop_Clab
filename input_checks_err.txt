@@ -1,0 +1,16 @@
+disable_output
+B1=F1*G1
+A1=B1+C1
+C1=-1
+G1=1
+F1=0
+E1=3
+D1=E1/A1
+G10=D1*G9
+H1=MAX(G1:G10)
+enable_output
+H2=SLEEP(H1)
+disable_output
+G9=-2
+enable_output
+F1=1
