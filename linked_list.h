@@ -13,6 +13,7 @@ typedef struct Node_l {
 
 // Function prototypes
 Node_l* createNode_l(Cell* data);
+void freeList(Node_l** head);
 void appendNode(Node_l** head, Cell* data);
 void deleteNode(Node_l** head, Cell* data);
 void displayList(Node_l* head);
