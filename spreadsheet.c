@@ -1113,7 +1113,75 @@ int v_spreadsheet_update_dependencies(Spreadsheet *sheet, const char *cell_name,
 
     // regfree(&refRegex);
 }
-
+Node_l *topo_sort(Spreadsheet *sheet, Cell *starting)
+{
+    // fprintf(stderr,"@ %d %d\n",starting->row,starting->col);
+    Node_l *head = NULL;
+    Node *st_top = createNode(starting);
+    OrderedSet *visited = orderedset_create();
+    char temp_col[10];
+    index_to_col((starting->col) - 1, temp_col);
+    char temp_row[10];
+    sprintf(temp_row, "%d", starting->row);
+    // char * start_key = strcat(temp_col,temp_row);
+    // fprintf(stderr,"key to be checked is %s",start_key);
+    // orderedset_insert(visited, start_key);
+    // orderedset_insert(visited,starting);
+    while (!isEmpty(st_top))
+    {
+        Cell *now = peek(st_top);
+        // else {
+        // push_withInt(&st_top,now.data,-1);
+        // fprintf(stderr," ## %d %d \n",now->row,now->col);
+        OrderedSet *my_set = now->dependents;
+        // orderedset_print(my_set);
+        // if (my_set->root == NULL)
+        //     fprintf(stderr, "[DEBUG]16\n");
+        char **keys = NULL;
+        int size = 0;
+        v_orderedset_collect_keys(my_set, &keys, &size);
+        // int flag = 1;
+        for (int i = 0; i < (size); i++)
+        {
+            char *ref = keys[i];
+            // printf("ref -> %s\n", ref);
+            // Also add cell_name to ref->dependents
+            // Cell *dep_cell = ordereddict_get(sheet->cells, ref);
+            int r_, c_;
+            spreadsheet_parse_cell_name(sheet, ref, &r_, &c_);
+            Cell *dep_cell = sheet->cells[sheet->cols * (r_ - 1) + (c_ - 1)];
+            if (!dep_cell)
+            {
+                // char * not_needed[64];
+                // int r,c;
+                // spreadsheet_parse_cell_name(sheet,ref,&r,&c);
+                // dep_cell = cell_create(r, c);
+                // ordereddict_insert(sheet->cells, ref, dep_cell);
+                fprintf(stderr, "cell not found\n");
+            }
+            if (!orderedset_contains(visited, ref))
+            {
+                push(&st_top, dep_cell);
+                // orderedset_insert(visited,ref);
+            }
+        }
+        if (now == peek(st_top))
+        {
+            pop(&st_top);
+            insertFront(&head, now);
+            char cell_name[64];
+            spreadsheet_get_cell_name(now->row, now->col, cell_name, sizeof(cell_name));
+            orderedset_insert(visited, cell_name);
+        }
+        // }
+    for(int x=0;x<size;x++) free(keys[x]);
+    if(keys) free(keys);
+    }
+    
+    destroyStack(&st_top);
+    orderedset_destroy(visited);
+    return head;
+}
 
 void spreadsheet_set_cell_value(Spreadsheet *sheet, char *cell_name, const char *formula,
                                 char *status_out, size_t status_size)
