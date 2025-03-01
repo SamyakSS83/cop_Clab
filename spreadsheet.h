@@ -33,6 +33,9 @@ int isNumeric(const char *str);
 int spreadsheet_evaluate_function(Spreadsheet *sheet, const char *func, const char *args, Cell* cell,const char*expr);
 int spreadsheet_evaluate_expression(Spreadsheet *sheet, const char *expr, Cell* cell);
 
+void spreadsheet_set_cell_value(Spreadsheet *sheet, char *cell_name, const char *formula, char *status_out, size_t status_size);
+void spreadsheet_display(Spreadsheet *sheet);
+
 int is_valid_command(Spreadsheet *sheet, char **cell_name, char **formula);
 #ifdef __cplusplus
 }
