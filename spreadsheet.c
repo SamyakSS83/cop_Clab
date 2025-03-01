@@ -708,6 +708,67 @@ int spreadsheet_evaluate_expression(Spreadsheet *sheet, const char *expr, Cell *
     }
 }
 
+int rec_find_cycle_using_stack(Spreadsheet *sheet, int r1, int r2, int c1, int c2, int range_bool, OrderedSet *visited, Node **top)
+{
+    // orderedset_print(new_depends);
+    while (!isEmpty(*top))
+    {
+        Cell *my_node = pop(top);
+        // get the cell name from my_node->col and my_node->row
+        char temp_col[10];
+        index_to_col((my_node->col) - 1, temp_col);
+        char temp_row[10];
+        sprintf(temp_row, "%d", my_node->row);
+        char *start_key = strcat(temp_col, temp_row);
+        // fprintf(stderr, "key to be checked is %s", start_key);
+        orderedset_insert(visited, start_key);
+        // if (orderedset_contains(new_depends, start_key))
+        if ((range_bool == 1 && (my_node->row >= r1 && my_node->row <= r2 && my_node->col >= c1 && my_node->col <= c2)) || (range_bool == 0 && ((my_node->row == r1 && my_node->col == c1) || (my_node->row == r2 && my_node->col == c2))))
+            return 1;
+        else
+        {
+            // Cell *my_node = ordereddict_get(dict, start_key);
+            // now my set is my_node->dependents
+            OrderedSet *my_set = my_node->dependents;
+            // orderedset_print(my_set);
+            // if (my_set->root == NULL)
+            //     fprintf(stderr, "[DEBUG]16\n");
+            char **keys = NULL;
+            int size = 0;
+            v_orderedset_collect_keys(my_set, &keys, &size);
+            // fprintf(stderr, "[DEBUG]17\n");
+
+            for (int i = 0; i < size; i++)
+            {
+                // If the key has not been visited, recurse to find a cycle
+                if (!orderedset_contains(visited, keys[i]))
+                {
+                    // Cell *neighbour_node = ordereddict_get(dict, keys[i]);
+                    int r_, c_;
+                    spreadsheet_parse_cell_name(sheet, keys[i], &r_, &c_);
+                    Cell *neighbour_node = sheet->cells[sheet->cols * (r_ - 1) + (c_ - 1)];
+                    if (!neighbour_node)
+                    {
+                        // fprintf(stderr,"i think it should not be the case this should be in dict\n");
+                        // if this changes nothing else changes so just check this cell alone
+                        if (orderedset_contains(visited, keys[i]))
+                            for(int x=0;x<size;x++) free(keys[x]);
+                            if(keys) free(keys);
+                            
+                            return 1;
+                    }
+                    push(top, neighbour_node);
+                }
+            }
+            for(int x=0;x<size;x++) free(keys[x]);
+            if(keys) free(keys);
+            // Rethink about this
+            // Cell * c = ordereddict_get(sheet->cells);
+        }
+    }
+    return 0;
+}
+
 void v_inorder_traversal_helper(OrderedSetNode *node, char **array, int *index)
 {
     if (node == NULL)
