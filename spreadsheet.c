@@ -238,6 +238,113 @@ int isNumeric(const char *str) {
     return (*endptr == '\0');  // If endptr points to '\0', it's a valid integer
 }
 
+int find_depends(const char *formula, Spreadsheet *sheet, int *r1, int *r2, int *c1, int *c2, int *range_bool)
+{
+    // fprintf(stderr, "find_depends start");
+    *range_bool = 0;
+    const char *ranges[] = {"MIN", "MAX", "AVG", "SUM", "STDEV"};
+    // start with this or not :
+    int i;
+    for (i = 0; i < 5; i++)
+    {
+        if (strncmp(formula, ranges[i], strlen(ranges[i])) == 0)
+        {
+            *range_bool = 1;
+            char *brack_sign = strchr(formula, '(');
+            const char *new_formula = brack_sign + 1;
+            int temp = strlen(new_formula);
+            // printf("%s",new_formula);
+            char only_range[100];
+            strncpy(only_range, new_formula, temp - 1);
+            only_range[temp - 1] = '\0';
+            // printf("%s", only_range);
+            int col1, row1, col2, row2;
+            char col_start[10], col_end[10];
+            if (sscanf(formula, "%[A-Z]%d:%[A-Z]%d", col_start, &row1, col_end, &row2) == 4)
+            {
+                col1 = col_to_index(col_start);
+                col2 = col_to_index(col_end);
+                row1--; // Convert to 0-based index
+                row2--;
+
+                if (col2 < col1)
+                {
+                    // fprintf(stderr, "Invalid formula format.\n");
+                    return -1;
+                }
+                else if (col1 == col2 && row2 < row1)
+                {
+                    // fprintf(stderr, "Invalid formula format.\n");
+                    return -1;
+                }
+                *r1 = row1;
+                *r2 = row2;
+                *c1 = col1;
+                *c2 = col2;
+
+                // printf("Extracting cells from range.. %s%d:%s%d\n", col_start, row1 + 1, col_end, row2 + 1);
+                // printf("%d %d %d %d\n",visible_row_start,visible_col_start,visible_col_end,visible_row_end);
+
+                // Iterate through the v*isible range
+            }
+        }
+    }
+    // it is not of the range form then :
+    if (i >= 5)
+    {
+        // if (extract_cells(formula, new_depends) == -1)
+        // {
+        //     return -1;
+        // }
+        *r1 = -1;
+        *r2 = -1;
+        *c1 = -1;
+        *c2 = -1;
+
+        if (formula && strlen(formula) > 0)
+        {
+            // We'll do a simple regex to find references
+            // this will only extract the cell references because only they are the ones to be sent to new_depends, it does nothing with the constant operands
+            regex_t refRegex;
+            regcomp(&refRegex, "([A-Za-z]+[0-9]+)", REG_EXTENDED);
+            const char *p = formula;
+            regmatch_t m;
+            int cnt = 0;
+            while (regexec(&refRegex, p, 1, &m, 0) == 0)
+            {
+                char ref[64];
+                int len = m.rm_eo - m.rm_so;
+                strncpy(ref, p + m.rm_so, len);
+                ref[len] = '\0';
+                p += m.rm_eo;
+                // printf("%s\n", ref);
+                // fprintf(stderr, "%s this is going to new_depends\n", ref);
+                if (cnt == 0)
+                {
+                    spreadsheet_parse_cell_name(sheet, ref, r1, c1);
+                }
+                if (cnt == 1)
+                {
+                    spreadsheet_parse_cell_name(sheet, ref, r2, c2);
+                }
+                // orderedset_insert(new_depends, ref);
+                cnt++;
+
+                /* vanshika ---> do be done... check for out of boundaries cells and return -1 in that case*/
+            }
+            regfree(&refRegex);
+        }
+    }
+    // new
+    // fprintf(stderr, "find_depends end");
+    // extract_visible_cells("MAX(A1:C5)", 0, 0, 10, 10);
+    // extract_visible_cells("MAX(D3:G7)", 2, 3, 10, 10);
+    return 0;
+}
+
+
+
+
 /* ----------------
    Expression & Function
    ---------------- */
