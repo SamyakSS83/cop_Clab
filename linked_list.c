@@ -14,6 +14,20 @@ Node_l* createNode_l(Cell* data) {
     return newNode_l;
 }
 
+void freeList(Node_l** head) {
+    Node_l* current = *head;
+    Node_l* nextNode;
+
+    while (current != NULL) {
+        nextNode = current->next; // Store reference to next node
+        free(current);            // Free current node
+        current = nextNode;        // Move to next node
+    }
+
+    *head = NULL; // Set head to NULL to avoid dangling pointers
+}
+
+
 // Function to add a Node_l at the end of the list
 void appendNode(Node_l** head, Cell* data) {
     Node_l* newNode_l = createNode_l(data);
