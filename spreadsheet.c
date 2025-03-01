@@ -601,6 +601,138 @@ int spreadsheet_evaluate_expression(Spreadsheet *sheet, const char *expr, Cell *
     }
 }
 
+void spreadsheet_set_cell_value(Spreadsheet *sheet, char *cell_name, const char *formula,
+                                char *status_out, size_t status_size)
+{
+    // fprintf(stderr, "[DEBUG] Setting cell value: %s=*%s*\n", cell_name, formula);
+    if (!sheet || !cell_name || !formula || *cell_name == '\0' || (*formula == '\0'))
+    {
+        // printf("went inside");
+        safe_strcpy(status_out, status_size, "invalid args");
+        return;
+    }
+    // fprintf(stderr, "[DEBUG]1\n");
+    // printf("heyy");
+    // Cell *cell = ordereddict_get(sheet->cells, cell_name);
+    int r_, c_;
+    spreadsheet_parse_cell_name(sheet, cell_name, &r_, &c_);
+    Cell *cell = sheet->cells[sheet->cols * (r_ - 1) + (c_ - 1)];
+    // no need to check out of bounds that is checked by is_valid_command
+    // fprintf(stderr, "[DEBUG]4\n");
+    // OrderedSet *new_depends = orderedset_create();
+    char *cpy_formula = malloc(strlen(formula) + 1);
+    strcpy(cpy_formula, formula);
+    clock_t start_time = clock();
+    int r1, r2, c1, c2;
+    int range_bool;
+    if (find_depends(cpy_formula, sheet, &r1, &r2, &c1, &c2, &range_bool) == -1)
+    {
+        free(cpy_formula);
+        safe_strcpy(status_out, status_size, "invalid command");
+        return;
+    }
+    clock_t end_time = clock();
+    double elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+    // printf("Time taken by find_depends: %.6f seconds\n", elapsed_time);
+
+    // fprintf(stderr, "[DEBUG]5\n");
+    // orderedset_print(new_depends);
+    start_time = clock();
+    if (first_step_find_cycle(sheet, cell_name, r1, r2, c1, c2, range_bool))
+    {
+        // printf("Cycle Detected\n");
+         free(cpy_formula);
+        safe_strcpy(status_out, status_size, "Cycle Detected");
+        return;
+    }
+    end_time = clock();
+    elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+    // printf("Time taken by first_step_find_cycle: %.6f seconds\n", elapsed_time);
+    // fprintf(stderr, "[DEBUG]6\n");
+    start_time = clock();
+    v_spreadsheet_update_dependencies(sheet, cell_name, cpy_formula);
+    end_time = clock();
+    elapsed_time = (double)(end_time - start_time) / CLOCKS_PER_SEC;
+    // printf("Time taken by v_spreadsheet_update_dependencies: %.6f seconds\n", elapsed_time);
+    // orderedset_print(cell->dependents);
+    // fprintf(stderr, "[DEBUG]7\n");
+
+    free(cell->formula);
+    cell->formula = strdup(formula);
+    // fprintf(stderr, "hereeee\n");
+    Node_l *head = topo_sort(sheet, cell);
+    // const char *v = "A1";
+    // Cell *c1 = ordereddict_get(sheet->cells, v);
+    // if (c1)
+    //     orderedset_print(c1->dependents);
+    // if (c1)
+    //     fprintf(stderr, "A1 is inside dict\n");
+
+    Node_l *curr = head;
+    while (curr != NULL)
+    {
+        // fprintf(stderr, "cell row %d cell col %d\n", curr->data->row, curr->data->col);
+        int x = spreadsheet_evaluate_expression(sheet, curr->data->formula, curr->data);
+        curr->data->value = x;
+        // fprintf(stderr, "%d\n\n\n", x);
+        curr = curr->next;
+    }
+     free(cpy_formula);
+    freeList(&head);
+    safe_strcpy(status_out, status_size, "ok");
+}
+/* ----------------
+   Display
+   ---------------- */
+
+void spreadsheet_display(Spreadsheet *sheet)
+{
+    if (!sheet)
+        return;
+    // fprintf(stderr, "[DEBUG] Displaying spreadsheet\n");
+    int end_row = (sheet->view_row + 10 < sheet->rows) ? (sheet->view_row + 10) : sheet->rows;
+    int end_col = (sheet->view_col + 10 < sheet->cols) ? (sheet->view_col + 10) : sheet->cols;
+
+    // Print col headers
+    printf("\t\t");
+    for (int col = sheet->view_col + 1; col <= end_col; col++)
+    {
+        char buf[64];
+        spreadsheet_col_to_letter(col, buf, sizeof(buf));
+        printf("%s\t\t", buf);
+    }
+    printf("\n");
+
+    // Print rows
+    for (int row = sheet->view_row + 1; row <= end_row; row++)
+    {
+        printf("%d\t\t", row);
+        for (int col = sheet->view_col + 1; col <= end_col; col++)
+        {
+            char cell_name[64];
+            spreadsheet_get_cell_name(row, col, cell_name, sizeof(cell_name));
+            // Cell *cell = ordereddict_get(sheet->cells, cell_name);
+            Cell *cell = sheet->cells[sheet->cols * (row - 1) + (col - 1)];
+            if (cell)
+            {
+                if (cell->error)
+                {
+                    printf("ERR\t\t");
+                }
+                else
+                {
+                    printf("%-16d", cell->value);
+                }
+            }
+            else
+            {
+                printf("0\t\t");
+            }
+        }
+        printf("\n");
+    }
+}
+
 int is_valid_command(Spreadsheet *sheet, char **cell_name, char **formula)
 {
     if (!sheet || !cell_name || !formula || !*cell_name || !*formula || **cell_name == '\0' || **formula == '\0')
