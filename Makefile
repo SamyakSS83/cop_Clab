@@ -58,21 +58,7 @@ test: orderedset_test spreadsheet_test stack_test linked_list_test tester scroll
 	@echo "All tests passed"
 
 report: report.tex
-	@echo "Checking for pdflatex..."
-	@which pdflatex > /dev/null 2>&1 || { \
-		echo "pdflatex could not be found. Installing..."; \
-		if [ "$$(uname)" = "Darwin" ]; then \
-			echo "Detected macOS"; \
-			brew install mactex; \
-		elif [ "$$(uname)" = "Linux" ]; then \
-			echo "Detected Linux"; \
-			sudo apt-get install -y texlive-latex-base; \
-		else \
-			echo "Unsupported OS"; \
-			exit 1; \
-		fi; \
-	}
-	@pdflatex -interaction=nonstopmode -halt-on-error -file-line-error report.tex > /dev/null
+	@pdflatex report.tex 
 	@echo "Report generated as report.pdf"
 
 
