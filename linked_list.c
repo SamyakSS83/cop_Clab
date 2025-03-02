@@ -14,6 +14,7 @@ Node_l* createNode_l(Cell* data) {
     return newNode_l;
 }
 
+// Function to free the entire linked list
 void freeList(Node_l** head) {
     Node_l* current = *head;
     Node_l* nextNode;
@@ -45,7 +46,7 @@ void appendNode(Node_l** head, Cell* data) {
 // Function to delete a Node_l by value
 void deleteNode(Node_l** head, Cell* data) {
     if (*head == NULL) {
-        printf("List is empty.\n");
+        // printf("List is empty.\n");
         return;
     }
     Node_l* temp = *head;
@@ -55,7 +56,7 @@ void deleteNode(Node_l** head, Cell* data) {
     if (temp != NULL && temp->data->row == data->row && temp->data->col == data->col) {
         *head = temp->next;
         free(temp);
-        printf("Node_l with Cell(%d, %d) deleted.\n", data->row, data->col);
+        // printf("Node_l with Cell(%d, %d) deleted.\n", data->row, data->col);
         return;
     }
 
@@ -67,29 +68,29 @@ void deleteNode(Node_l** head, Cell* data) {
 
     // If the value is not in the list
     if (temp == NULL) {
-        printf("Node_l with Cell(%d, %d) not found.\n", data->row, data->col);
+        // printf("Node_l with Cell(%d, %d) not found.\n", data->row, data->col);
         return;
     }
 
     // Unlink the Node_l from the list
     prev->next = temp->next;
     free(temp);
-    printf("Node_l with Cell(%d, %d) deleted.\n", data->row, data->col);
+    // printf("Node_l with Cell(%d, %d) deleted.\n", data->row, data->col);
 }
 
 // Function to display the list
 void displayList(Node_l* head) {
     if (head == NULL) {
-        printf("List is empty.\n");
+        // printf("List is empty.\n");
         return;
     }
     Node_l* temp = head;
     printf("Linked list: ");
     while (temp != NULL) {
-        printf("Cell(%d, %d) -> ", temp->data->row, temp->data->col);
+        // printf("Cell(%d, %d) -> ", temp->data->row, temp->data->col);
         temp = temp->next;
     }
-    printf("NULL\n");
+    // printf("NULL\n");
 }
 
 
