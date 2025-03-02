@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <pty.h>
+#include <util.h>
 #include <utmp.h>
 #include <fcntl.h>
 #include <regex.h>

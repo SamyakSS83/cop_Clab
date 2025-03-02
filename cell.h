@@ -25,6 +25,8 @@ typedef struct Cell {
 // Function to create a cell
 Cell* cell_create(int row, int col);
 
+
+
 // Function to destroy a cell
 void cell_destroy(Cell *cell);
 

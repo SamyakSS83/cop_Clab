@@ -9,7 +9,7 @@ all: spreadsheet
 
 
 
-test: orderedset_test stack_test linked_list_test tester scroll_test vector_test
+test: orderedset_test spreadsheet_test stack_test linked_list_test tester scroll_test vector_test
 	@echo "Running tests"
 	@echo "Orderedset test"
 	@echo "----------------------------------------------------------------------------------------------------------"
@@ -26,7 +26,7 @@ test: orderedset_test stack_test linked_list_test tester scroll_test vector_test
 	@echo "Linked list test"
 	@echo "----------------------------------------------------------------------------------------------------------"
 	./linked_list_test
-	# @echo "Spreadsheet test"
+	@echo "Spreadsheet test"
 	@echo "----------------------------------------------------------------------------------------------------------"
 	./spreadsheet_test
 	@echo "Scroll test"
@@ -136,6 +136,7 @@ scroll_test.o: scroll_test.c
 
 vector_test: vector_test.c vector.o
 	$(CC) $(CFLAGS) -o vector_test vector.c vector_test.c
+
 
 
 

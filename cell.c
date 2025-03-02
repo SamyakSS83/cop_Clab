@@ -17,6 +17,8 @@ Cell* cell_create(int row, int col) {
     return cell;
 }
 
+
+
 void cell_destroy(Cell *cell) {
     if (cell == NULL)
         return;

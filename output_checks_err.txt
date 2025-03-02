@@ -1,0 +1,108 @@
+Command: disable_output
+Output: disable_output
+[0.0] (ok) > 
+
+Command: B1=F1*G1
+Output: B1=F1*G1
+[0.0] (ok) > 
+
+Command: A1=B1+C1
+Output: A1=B1+C1
+[0.0] (ok) > 
+
+Command: C1=-1
+Output: C1=-1
+[0.0] (ok) > 
+
+Command: G1=1
+Output: G1=1
+[0.0] (ok) > 
+
+Command: F1=0
+Output: F1=0
+[0.0] (ok) > 
+
+Command: E1=3
+Output: E1=3
+[0.0] (ok) > 
+
+Command: D1=E1/A1
+Output: D1=E1/A1
+[0.0] (ok) > 
+
+Command: G10=D1*G9
+Output: G10=D1*G9
+[0.0] (ok) > 
+
+Command: H1=MAX(G1:G10)
+Output: H1=MAX(G1:G10)
+[0.0] (ok) > 
+
+Command: enable_output
+Output: enable_output
+		A		B		C		D		E		F		G		H		I		J		
+1		-1              0               -1              -3              3               0               1               1               0               0               
+2		0               0               0               0               0               0               0               0               0               0               
+3		0               0               0               0               0               0               0               0               0               0               
+4		0               0               0               0               0               0               0               0               0               0               
+5		0               0               0               0               0               0               0               0               0               0               
+6		0               0               0               0               0               0               0               0               0               0               
+7		0               0               0               0               0               0               0               0               0               0               
+8		0               0               0               0               0               0               0               0               0               0               
+9		0               0               0               0               0               0               0               0               0               0               
+10		0               0               0               0               0               0               0               0               0               0               
+[0.0] (ok) > 
+
+Command: H2=SLEEP(H1)
+Output: H2=SLEEP(H1)
+		A		B		C		D		E		F		G		H		I		J		
+1		-1              0               -1              -3              3               0               1               1               0               0               
+2		0               0               0               0               0               0               0               1               0               0               
+3		0               0               0               0               0               0               0               0               0               0               
+4		0               0               0               0               0               0               0               0               0               0               
+5		0               0               0               0               0               0               0               0               0               0               
+6		0               0               0               0               0               0               0               0               0               0               
+7		0               0               0               0               0               0               0               0               0               0               
+8		0               0               0               0               0               0               0               0               0               0               
+9		0               0               0               0               0               0               0               0               0               0               
+10		0               0               0               0               0               0               0               0               0               0               
+[1.0] (ok) > 
+
+Command: disable_output
+Output: disable_output
+[0.0] (ok) > 
+
+Command: G9=-2
+Output: G9=-2
+[6.0] (ok) > 
+
+Command: enable_output
+Output: enable_output
+		A		B		C		D		E		F		G		H		I		J		
+1		-1              0               -1              -3              3               0               1               6               0               0               
+2		0               0               0               0               0               0               0               6               0               0               
+3		0               0               0               0               0               0               0               0               0               0               
+4		0               0               0               0               0               0               0               0               0               0               
+5		0               0               0               0               0               0               0               0               0               0               
+6		0               0               0               0               0               0               0               0               0               0               
+7		0               0               0               0               0               0               0               0               0               0               
+8		0               0               0               0               0               0               0               0               0               0               
+9		0               0               0               0               0               0               -2              0               0               0               
+10		0               0               0               0               0               0               6               0               0               0               
+[0.0] (ok) > 
+
+Command: F1=1
+Output: F1=1
+		A		B		C		D		E		F		G		H		I		J		
+1		0               1               -1              ERR		3               1               1               ERR		0               0               
+2		0               0               0               0               0               0               0               ERR		0               0               
+3		0               0               0               0               0               0               0               0               0               0               
+4		0               0               0               0               0               0               0               0               0               0               
+5		0               0               0               0               0               0               0               0               0               0               
+6		0               0               0               0               0               0               0               0               0               0               
+7		0               0               0               0               0               0               0               0               0               0               
+8		0               0               0               0               0               0               0               0               0               0               
+9		0               0               0               0               0               0               -2              0               0               0               
+10		0               0               0               0               0               0               ERR		0               0               0               
+[0.0] (ok) > 
+
