@@ -918,7 +918,7 @@ void remove_old_dependents(Spreadsheet *sheet, const char *cell_name)
                         // Cell *dep_cell = ordereddict_get(sheet->cells, ref);
                         // int r_, c_;
                         // spreadsheet_parse_cell_name(sheet, ref, &r_, &c_);
-                        Cell *dep_cell = sheet->cells[sheet->cols * (r - 1) + (c - 1)];
+                        Cell *dep_cell = sheet->cells[sheet->cols * (r) + (c)];
                         if (!dep_cell)
                         {
                             // char * not_needed[64];
