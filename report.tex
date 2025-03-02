@@ -109,7 +109,6 @@ Our dependency management system incorporates several key components:
     \item \textbf{Custom Stack}: To handle deep dependency chains without encountering stack overflow issues, we implemented a custom stack data structure that replaces recursive calls. This allows our implementation to handle larger spreadsheets with complex dependency relationships.
 \end{itemize}
 
-\section{System Architecture}
 \begin{figure}[h!]
     \centering
     \includegraphics[width=0.8\textwidth]{flowchart.png}
@@ -119,7 +118,21 @@ Our dependency management system incorporates several key components:
 
 \section{Results and Covered Edge Cases}
 
-\section{References}
+In our testing suite, we have done unit testing as well as Blackbox testing.
+The following edge cases were covered:
+
+\begin{itemize}
+    \item \textbf{Cyclic Dependency}: We tested if the system can detect cyclic dependencies between cells. The system correctly identifies circular dependencies and raises an error message while rejecting the formula (tested by \texttt{input\_cycle.txt} and \texttt{spreadsheet\_test.c}).
+    \item \textbf{Invalid Formula}: In addition to the well-defined signatures, we have given support for categorizing numerals with \(+\) and \(-\) signs, so inputs like \(1++1\) and \(1+-1\) are considered valid. All other inputs and out-of-bound inputs are raised as invalid (tested by \texttt{input\_arbit.txt}, \texttt{input\_unrec\_cmds.txt} and \texttt{spreadsheet\_test.c}).
+    \item \textbf{Sleep Cells}
+\end{itemize}
+
+
+
+
+% \section{References}
+
+
 
 
 
