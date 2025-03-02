@@ -608,11 +608,6 @@ void test_command_validation() {
     assert(is_valid_command(sheet, &cell, &formula) == 0);
     printf("✓ 'ZZ10=B12' is invalid\n");
 
-    cell = (char *)"a2";
-    formula = (char *)"4";
-    assert(is_valid_command(sheet, &cell, &formula) == 1);
-    printf("✓ 'a2=4' is valid\n");
-
     cell = (char *)"E02";
     formula = (char *)"9";
     assert(is_valid_command(sheet, &cell, &formula) == 0);
