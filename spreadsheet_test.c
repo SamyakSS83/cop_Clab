@@ -225,6 +225,249 @@ void test_cell_name_helpers() {
     free(sheet);
 }
 
+int std(int* arr, int n) {
+    if (n <= 1) return 0;  // Avoid division by zero
+
+    int sum = 0, mean;
+    double variance = 0.0;
+
+    // Calculate mean
+    for (int i = 0; i < n; i++) {
+        sum += arr[i];
+    }
+    mean = sum / n;
+
+    // Calculate variance
+    for (int i = 0; i < n; i++) {
+        variance += (arr[i] - mean) * (arr[i] - mean);
+    }
+    variance /= n;
+
+    // Return integer standard deviation (rounded)
+    return (int)round(sqrt(variance));
+}
+
+
+void test_spreadsheet_evaluate_expression() {
+    printf("\n====== Testing evaluate expression ======\n");
+    Spreadsheet *sheet = spreadsheet_create(100, 100);
+    // Assigning values to some cells
+    sheet->cells[0]->value = 2;     // A1 = 2
+    sheet->cells[1]->value = -3;    // B1 = -3
+    sheet->cells[2]->value = 123;   // C1 = 123
+    sheet->cells[3]->value = -234;  // D1 = -234
+
+    Cell result;
+
+    // Previously tested cases
+    assert(spreadsheet_evaluate_expression(sheet, "-1", &result) == -1);
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "+1", &result) == 1);
+    assert(result.error == 0);
+    assert(spreadsheet_evaluate_expression(sheet, "+2", &result) == 2);
+    assert(result.error == 0);
+    assert(spreadsheet_evaluate_expression(sheet, "-4", &result) == -4);
+    assert(result.error == 0);
+
+    // check max int range as well
+    assert(spreadsheet_evaluate_expression(sheet, "2147483647", &result) == 2147483647);
+    assert(result.error == 0);
+    assert(spreadsheet_evaluate_expression(sheet, "-2147483648", &result) == -2147483648);
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "00", &result) == 0);
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "0098", &result) == 98);
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "0090", &result) == 90);
+    assert(result.error == 0);
+    assert(spreadsheet_evaluate_expression(sheet, "-0090", &result) == -90);
+    assert(result.error == 0);
+
+    // Test simple arithmetic
+    assert(spreadsheet_evaluate_expression(sheet, "-1*-1", &result) == 1);
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "-1*+1", &result) == -1);
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "-1+-1", &result) == -2);
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "-1-+1", &result) == -2);
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "-1/+1", &result) == -1);
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "-1/-1", &result) == 1);
+    assert(result.error == 0);
+
+    // Test division by zero errors
+    assert(spreadsheet_evaluate_expression(sheet, "1/0", &result) == 0);
+    assert(result.error == 1);
+
+    assert(spreadsheet_evaluate_expression(sheet, "2/0", &result) == 0);
+    assert(result.error == 1);
+
+
+    // New test cases with cell references
+    assert(spreadsheet_evaluate_expression(sheet, "A1*B1", &result) == (2 * -3));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "A1/B1", &result) == (2 / -3));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "A1+B1", &result) == (2 + -3));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "-1*B1", &result) == (-1 * -3));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "3*B1", &result) == (3 * -3));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "+3*B1", &result) == (3 * -3));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "B1+2", &result) == (-3 + 2));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "B1/0", &result) == 0);
+    assert(result.error == 1);  // Division by zero
+
+    assert(spreadsheet_evaluate_expression(sheet, "B1/-0", &result) == 0);
+    assert(result.error == 1);  // Division by zero
+
+    assert(spreadsheet_evaluate_expression(sheet, "C1-D1", &result) == (123 - (-234)));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "C1-34", &result) == (123 - 34));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "3/A1", &result) == (3 / 2));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "-3/A1", &result) == (-3 / 2));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "C1/-3", &result) == (123 / -3));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "C1/+3", &result) == (123 / 3));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "D1*-4", &result) == (-234 * -4));
+    assert(result.error == 0);
+
+    // Setting B1 = 0 for division test
+    sheet->cells[1]->value = 0;
+    assert(spreadsheet_evaluate_expression(sheet, "A1/B1", &result) == 0);
+    assert(result.error == 1);  // Division by zero
+
+    // Reset B1 to original value
+    sheet->cells[1]->value = -3;
+
+    assert(spreadsheet_evaluate_expression(sheet, "-5+D1", &result) == (-5 + (-234)));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "D1+-6", &result) == (-234 + (-6)));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "C1*+2", &result) == (123 * 2));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "A1++3", &result) == 5);
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "+6+A1", &result) == (6 + 2));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "6+A1", &result) == (6 + 2));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "+4-A1", &result) == (4 - 2));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "4-A1", &result) == (4 - 2));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "-3-A1", &result) == (-3 - 2));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "C1-+3", &result) == (123 - 3));
+    assert(result.error == 0);
+
+    assert(spreadsheet_evaluate_expression(sheet, "C1--3", &result) == (123 + 3));
+    assert(result.error == 0);
+
+    
+    sheet->cells[0]->value = 2;       // A1 (row 1, col 1) → index 0
+    sheet->cells[100]->value = -3;    // A2 (row 2, col 1) → index 100
+    sheet->cells[200]->value = 123;   // A3 (row 3, col 1) → index 200
+    sheet->cells[300]->value = -234;  // A4 (row 4, col 1) → index 300
+    sheet->cells[400]->value = 50;    // A5 (row 5, col 1) → index 400
+    sheet->cells[500]->value = 8;     // A6 (row 6, col 1) → index 500
+    sheet->cells[600]->value = -99;   // A7 (row 7, col 1) → index 600
+    sheet->cells[700]->value = 7;     // A8 (row 8, col 1) → index 700
+    sheet->cells[800]->value = 0;     // A9 (row 9, col 1) → index 800
+    sheet->cells[900]->value = 16;    // A10 (row 10, col 1) → index 900
+
+
+    assert(spreadsheet_evaluate_expression(sheet, "MIN(A1:A10)", &result) == -234);
+    assert(result.error == 0);
+
+    // MAX(A1:A10) - Expect 123
+    assert(spreadsheet_evaluate_expression(sheet, "MAX(A1:A10)", &result) == 123);
+    assert(result.error == 0);
+
+    // SUM(A1:A10) - Expect sum: (2 + (-3) + 123 + (-234) + 50 + 8 + (-99) + 7 + 0 + 16) = -130
+    assert(spreadsheet_evaluate_expression(sheet, "SUM(A1:A10)", &result) == -130);
+    assert(result.error == 0);
+
+    // AVG(A1:A10) - Expect average: (-130 / 10) = -13.0
+    assert(spreadsheet_evaluate_expression(sheet, "AVG(A1:A10)", &result) == -13);
+    assert(result.error == 0);
+
+    // STDEV(A1:A10) - Standard deviation calculation
+    int values[] = {2, -3, 123, -234, 50, 8, -99, 7, 0, 16};
+    int expected_stdev = std(values,10);
+
+    assert(spreadsheet_evaluate_expression(sheet, "STDEV(A1:A10)", &result) == expected_stdev);
+    assert(result.error == 0);
+
+    // Testing SLEEP(B1) for different values of B1
+    sheet->cells[1]->value = -3;  // B1 = -3
+    assert(spreadsheet_evaluate_expression(sheet, "SLEEP(B1)", &result) == -3);
+    assert(result.error == 0);
+
+    sheet->cells[1]->value = 0;  // B1 = 0
+    assert(spreadsheet_evaluate_expression(sheet, "SLEEP(B1)", &result) == 0);
+    assert(result.error == 0);
+
+    sheet->cells[1]->value = 5;  // B1 = 5
+    assert(spreadsheet_evaluate_expression(sheet, "SLEEP(B1)", &result) == 5);
+    assert(result.error == 0);
+    printf("✓ All test cases passed for evaluate expression\n");
+    
+    // Free allocated memory
+     for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+
+    free(sheet->cells);
+    free(sheet);
+
+}
+
 // Test basic cell value setting and arithmetic
 void test_basic_arithmetic() {
     printf("\n====== Testing basic arithmetic ======\n");
