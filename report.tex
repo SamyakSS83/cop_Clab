@@ -48,8 +48,6 @@
 
 
 
-\tableofcontents
-
 \section{Introduction}
 In this implementation of Spreadsheet, we have modeled the problem to be a directed acyclic graph. In order to ensure that the formulas are valid and conserved against individual cell value change, we have used topo sort and stacks to efficiently find the order of recalculation and manage dependencies upon changing the value of a cell.
 
@@ -77,7 +75,7 @@ The Cell struct is a fundamental data structure in our implementation that repre
     \item \textbf{value}: Stores the numerical value of the cell
     \item \textbf{error}: A flag indicating invalid arithmetic operations 
     \item \textbf{formula}: A character pointer storing the formula string used to calculate the cell's value
-    \item \textbf{dependents_initialised}: A character telling whether there are any dependents or not.
+    \item \textbf{dependents\_initialised}: A character telling whether there are any dependents or not
     \item \textbf{dependents}: A union of a Vector and an ordered set (implemented as an AVL tree) that store references to all cells that use this cell in their formulas
     
 \end{itemize}
@@ -148,10 +146,10 @@ The following edge cases were covered:
         \item We tested if the normal sleep function works as expected. We tested for cascaded sleep cells and their behavior upon changing the base of the cascade. 
         \item We also tested for SLEEP(num), where num is a negative number. (tested by \texttt{input\_sleep.txt} and \texttt{spreadsheet\_test.c}).
     \end{itemize}
-    \item \textbf{Invalid Arithmeic}: We tested if logically invalid arithmetic operations, such as division by zero, and its cascades are flagged correctly by showing ERR on display. (tested by \texttt{input\_checks\_err.txt})
+    \item \textbf{Invalid Arithmetic}: We tested if logically invalid arithmetic operations, such as division by zero, and its cascades are flagged correctly by showing ERR on display. (tested by \texttt{input\_checks\_err.txt})
     \item \textbf{Scrolling}: We unit-tested the scrolling nature to match the specifications of the assignment. (tested by \texttt{scroll\_test.c})
     \item \textbf{Datastructures Correctness}: We unit-tested for the correctness and robustness of AVL tree, Linked List, Cell struct and Stack. (tested by \texttt{orderedset\_test.c}, \texttt{linked\_list\_test.c}, \texttt{cell\_test.c} and \texttt{stack\_test.c})
-    \item{Empty input} : Empty input i.e. just '\n' from the user is recognised as invalid command.
+    \item \textbf{Empty input}: Empty input i.e. just newline character from the user is recognised as invalid command.
 \end{itemize}
 
 \section{Performance}
@@ -226,6 +224,15 @@ During the course of this project, we encountered several challenges and saw sho
         \includegraphics[width=0.9\textwidth]{3num.jpeg}
         \caption{3rd Numeral Assignment}
         \label{fig:3num}
+    \end{minipage}
+\end{figure}
+\begin{figure}[h!]
+    \centering
+    \begin{minipage}{0.3\textwidth}
+        \centering
+        \includegraphics[width=0.9\textwidth]{3for.jpeg}
+        \caption{3rd Formula Assignment and Recalculation}
+        \label{fig:3for}
     \end{minipage}
 \end{figure}
 
