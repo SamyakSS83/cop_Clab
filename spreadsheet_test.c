@@ -94,6 +94,28 @@ void test_column_letter_conversion() {
     
     assert(strcmp(spreadsheet_col_to_letter(100, buffer, sizeof(buffer)), "CV") == 0);
     printf("✓ Column 100 converts to 'CV'\n");
+
+    assert(strcmp(spreadsheet_col_to_letter(703, buffer, sizeof(buffer)), "AAA") == 0);
+    printf("✓ Column 703 converts to 'AAA'\n");
+
+    assert(strcmp(spreadsheet_col_to_letter(1404, buffer, sizeof(buffer)), "BAZ") == 0);
+    printf("✓ Column 1404 converts to 'BAZ'\n");
+
+    assert(strcmp(spreadsheet_col_to_letter(703, buffer, sizeof(buffer)), "AAA") == 0);
+    printf("✓ Column 703 converts to 'AAA'\n");
+    
+    assert(strcmp(spreadsheet_col_to_letter(704, buffer, sizeof(buffer)), "AAB") == 0);
+    printf("✓ Column 704 converts to 'AAB'\n");
+    
+    assert(strcmp(spreadsheet_col_to_letter(728, buffer, sizeof(buffer)), "AAZ") == 0);
+    printf("✓ Column 728 converts to 'AAZ'\n");
+    
+    assert(strcmp(spreadsheet_col_to_letter(729, buffer, sizeof(buffer)), "ABA") == 0);
+    printf("✓ Column 729 converts to 'ABA'\n");
+    
+    assert(strcmp(spreadsheet_col_to_letter(18278, buffer, sizeof(buffer)), "ZZZ") == 0);
+    printf("✓ Column 18278 converts to 'ZZZ'\n");
+    
     
     // Letter to column tests
     assert(spreadsheet_letter_to_col("A") == 1);
@@ -110,6 +132,24 @@ void test_column_letter_conversion() {
     
     assert(spreadsheet_letter_to_col("CV") == 100);
     printf("✓ 'CV' converts to column 100\n");
+    
+    assert(spreadsheet_letter_to_col("AAA") == 703);
+    printf("✓ 'AAA' converts to column 703\n");
+
+    assert(spreadsheet_letter_to_col("BAZ") == 1404);
+    printf("✓ 'BAZ' converts to column 1404\n");
+    
+    assert(spreadsheet_letter_to_col("AAB") == 704);
+    printf("✓ 'AAB' converts to column 704\n");
+    
+    assert(spreadsheet_letter_to_col("AAZ") == 728);
+    printf("✓ 'AAZ' converts to column 728\n");
+    
+    assert(spreadsheet_letter_to_col("ABA") == 729);
+    printf("✓ 'ABA' converts to column 729\n");
+
+    assert(spreadsheet_letter_to_col("ZZZ") == 18278);
+    printf("✓ 'ZZZ' converts to column 18278\n");
     
     // Test round-trip conversion
     for (int col = 1; col <= 100; col++) {
