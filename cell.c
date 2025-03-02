@@ -13,9 +13,7 @@ Cell* cell_create(int row, int col) {
     cell->error = 0;
     cell->formula = NULL;
     cell->container = 0;
-    // fprintf(stderr, "creating vector\n");
-    cell->dependents.dependents_vector = malloc(sizeof(Vector));
-    // fprintf(stderr, "created vector\n");
+    cell->dependents_initialised = 0;
     return cell;
 }
 
@@ -24,7 +22,7 @@ void cell_destroy(Cell *cell) {
         return;
     if (cell->formula != NULL)
         free(cell->formula);
-    if(cell->container == 0){
+    if(cell->container == 0 && cell->dependents_initialised == 1){
         // vector
         vector_free(cell->dependents.dependents_vector);
         free(cell->dependents.dependents_vector);
@@ -42,8 +40,9 @@ void cell_dep_insert(Cell *cell, const char *key){
     if(cell->container == 0){
         // vector
         // fprintf(stderr, "inserting into vector1\n");
-        if(!cell->dependents.dependents_vector->data){
-            // fprintf(stderr, "initializing vector\n");
+        if(cell->dependents_initialised == 0){
+            cell->dependents_initialised = 1;
+            cell->dependents.dependents_vector = malloc(sizeof(Vector));
             vector_init(cell->dependents.dependents_vector);
         }
         if(cell->dependents.dependents_vector->size>7){
@@ -55,8 +54,11 @@ void cell_dep_insert(Cell *cell, const char *key){
                 orderedset_insert(new_set, cell->dependents.dependents_vector->data[i]);
             }
             orderedset_insert(new_set, key);
-            vector_free(cell->dependents.dependents_vector);
-            free(cell->dependents.dependents_vector);
+            if(cell->dependents_initialised == 1){
+                vector_free(cell->dependents.dependents_vector);
+                free(cell->dependents.dependents_vector);
+            }
+            
             cell->container = 1;
             cell->dependents.dependents_set = new_set;
         }
