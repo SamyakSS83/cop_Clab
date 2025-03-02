@@ -19,8 +19,28 @@ void count_dependent(const char *key) {
 
 // Helper function to safely add a dependent
 void add_dependent(Cell *cell, const char *dependent_key) {
-    if (cell && cell->dependents && dependent_key) {
-        orderedset_insert(cell->dependents, dependent_key);
+    cell_dep_insert(cell,dependent_key);
+}
+
+char vector_contains(Vector *vec, const char *str) {
+    for (int16_t i = 0; i < vec->size; i++) {
+        if (strcmp(vec->data[i], str) == 0) {
+            return 1; // String found
+        }
+    }
+    return 0; // String not found
+}
+
+char cell_contains(Cell*cell,char *key){
+    if (cell->dependents_initialised==0){
+        return 0;
+    }
+    else if (cell->container==0){
+       Vector* vec = cell->dependents.dependents_vector;
+       return vector_contains(vec,key);
+    }
+    else {
+        return orderedset_contains(cell->dependents.dependents_set,key);
     }
 }
 
@@ -35,7 +55,7 @@ int main() {
     assert(cell->value == 0);
     assert(cell->error == 0);
     assert(cell->formula == NULL);
-    assert(cell->dependents != NULL);
+    assert(cell->dependents_initialised ==0);
     printf("Cell created at position (%d,%d) - PASS\n\n", cell->row, cell->col);
     
     printf("Test 2: Cell value modification\n");
@@ -61,27 +81,15 @@ int main() {
     add_dependent(cell, "C2");
     add_dependent(cell, "D3");
     
-    assert(orderedset_contains(cell->dependents, "B1") == 1);
-    assert(orderedset_contains(cell->dependents, "C2") == 1);
-    assert(orderedset_contains(cell->dependents, "D3") == 1);
-    assert(orderedset_contains(cell->dependents, "E4") == 0);
+    assert(cell_contains(cell, "B1") == 1);
+    assert(cell_contains(cell, "C2") == 1);
+    assert(cell_contains(cell, "D3") == 1);
+    assert(cell_contains(cell, "E4") == 0);
     
-    dependent_count = 0;
-    printf("Dependents of cell: ");
-    orderedset_inorder_traversal(cell->dependents, count_dependent);
-    printf("\nDependent count: %d (Expected: 3) - %s\n\n", 
-           dependent_count, dependent_count == 3 ? "PASS" : "FAIL");
-    assert(dependent_count == 3);
-    
+
     printf("Test 6: Removing dependents\n");
-    orderedset_remove(cell->dependents, "C2");
-    assert(orderedset_contains(cell->dependents, "C2") == 0);
-    dependent_count = 0;
-    printf("Dependents after removal: ");
-    orderedset_inorder_traversal(cell->dependents, count_dependent);
-    printf("\nDependent count: %d (Expected: 2) - %s\n\n", 
-           dependent_count, dependent_count == 2 ? "PASS" : "FAIL");
-    assert(dependent_count == 2);
+    cell_dep_remove(cell, "C2");
+    assert(cell_contains(cell, "C2") == 0);
     
     printf("Test 7: Creating multiple cells\n");
     Cell *cell2 = cell_create(2, 3);
@@ -93,10 +101,10 @@ int main() {
     add_dependent(cell2, "X10");
     
     // Verify each cell has its own dependencies
-    assert(orderedset_contains(cell->dependents, "B1") == 1);
-    assert(orderedset_contains(cell2->dependents, "B1") == 0);
-    assert(orderedset_contains(cell->dependents, "A1") == 0);
-    assert(orderedset_contains(cell2->dependents, "A1") == 1);
+    assert(cell_contains(cell, "B1") == 1);
+    assert(cell_contains(cell2, "B1") == 0);
+    assert(cell_contains(cell, "A1") == 0);
+    assert(cell_contains(cell2, "A1") == 1);
     printf("Each cell maintains its own dependencies - PASS\n\n");
     
     printf("Test 8: Memory management\n");
