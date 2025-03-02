@@ -53,7 +53,7 @@ test: orderedset_test spreadsheet_test stack_test linked_list_test tester scroll
 	@./test 100 100 input_scroll_test.txt output_scroll_test.txt
 	@echo "----------------------------------------------------------------------------------------------------------"
 	@echo "----------------------------------------------------------------------------------------------------------"
-	@./test 100 100 input_100x100.txt output_100x100.txt
+	@./target/release/spreadsheet 100 100 < input100x100.txt > output100x100.txt
 	@echo "----------------------------------------------------------------------------------------------------------"
 	@echo "All tests passed"
 
