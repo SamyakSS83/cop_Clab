@@ -556,6 +556,127 @@ void test_command_validation() {
     formula = (char *)"SUM(Z10:A1)"; // Inverted range
     assert(is_valid_command(sheet, &cell, &formula) == 0);
     printf("✓ 'A1=SUM(Z10:A1)' is invalid\n");
+
+    // Test invalid commands
+    cell = (char *)"B1";
+    formula = (char *)"-A11";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'B1=-A11' is invalid\n");
+
+    cell = (char *)"C1";
+    formula = (char *)"A1*-B1";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'C1=A1*-B1' is invalid\n");
+
+    cell = (char *)"D1";
+    formula = (char *)"-B11*-C11";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'D1=-B11*-C11' is invalid\n");
+
+    cell = (char *)"D2";
+    formula = (char *)"-B11*+C11";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'D2=-B11*+C11' is invalid\n");
+
+    cell = (char *)"D3";
+    formula = (char *)"-B11+-C11";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'D3=-B11+-C11' is invalid\n");
+
+    cell = (char *)"D4";
+    formula = (char *)"-B11-+C11";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'D4=-B11-+C11' is invalid\n");
+
+    cell = (char *)"D5";
+    formula = (char *)"-B11/+C11";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'D5=-B11/+C11' is invalid\n");
+
+    cell = (char *)"D6";
+    formula = (char *)"-B11/-C11";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'D6=-B11/-C11' is invalid\n");
+
+    cell = (char *)"A1";
+    formula = (char *)"B120";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'A1=B120' is invalid\n");
+
+    cell = (char *)"ZZ10";
+    formula = (char *)"B12";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'ZZ10=B12' is invalid\n");
+
+    cell = (char *)"a2";
+    formula = (char *)"4";
+    assert(is_valid_command(sheet, &cell, &formula) == 1);
+    printf("✓ 'a2=4' is valid\n");
+
+    cell = (char *)"E02";
+    formula = (char *)"9";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'E02=9' is invalid\n");
+
+    cell = (char *)"E0";
+    formula = (char *)"98";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'E0=98' is invalid\n");
+
+    cell = (char *)"A2";
+    formula = (char *)"MAX((A1:C3))";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'A2=MAX((A1:C3))' is invalid\n");
+
+    cell = (char *)"A1";
+    formula = (char *)"SLEEP()";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'A1=SLEEP()' is invalid\n");
+
+    cell = (char *)"A1";
+    formula = (char *)"MAX()";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'A1=MAX()' is invalid\n");
+
+    cell = (char *)"A1";
+    formula = (char *)"==5";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'A1==5' is invalid\n");
+
+    cell = (char *)"A1";
+    formula = (char *)"SLEEP(C1+D1)";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'A1=SLEEP(C1+D1)' is invalid\n");
+
+    cell = (char *)"A1";
+    formula = (char *)"SLEEP(C1+2)";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'A1=SLEEP(C1+2)' is invalid\n");
+
+    cell = (char *)"E1";
+    formula = (char *)"--D1";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'E1=--D1' is invalid\n");
+
+    cell = (char *)"A1";
+    formula = (char *)"MAZ(B1:C5)";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'A1=MAZ(B1:C5)' is invalid\n");
+
+    cell = (char *)"A1";
+    formula = (char *)"--5";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'A1=--5' is invalid\n");
+
+    cell = (char *)"A1";
+    formula = (char *)"-4+++5";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ 'A1=-4+++5' is invalid\n");
+
+    cell = (char *)"";
+    formula = (char *)"";
+    assert(is_valid_command(sheet, &cell, &formula) == 0);
+    printf("✓ Empty cell and formula are invalid\n");
     
     // Cleanup
      for (int r = 1; r <= 100; r++)
