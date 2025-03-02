@@ -58,7 +58,7 @@ report: report.tex
 			exit 1; \
 		fi; \
 	}
-	@pdflatex -interaction=nonstopmode -halt-on-error -file-line-error report.tex > /dev/null
+	@pdflatex report.tex
 	@echo "Report generated as report.pdf"
 
 
