@@ -14,6 +14,21 @@ Node* createNode(Cell* data) {
     return newNode;
 }
 
+// Function to free the entire stack
+void destroyStack(Node** top) {
+    Node* current = *top;
+    Node* nextNode;
+
+    while (current != NULL) {
+        nextNode = current->next; // Store reference to next node
+        free(current);            // Free current node
+        current = nextNode;        // Move to next node
+    }
+
+    *top = NULL; // Set top to NULL to avoid dangling pointers
+}
+
+
 // Function to push an element onto the stack
 void push(Node** top, Cell* data) {
     Node* newNode = createNode(data);
