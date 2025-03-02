@@ -3,7 +3,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -g -O3
 
-OBJ = main.o spreadsheet.o orderedset.o stack.o linked_list.o cell.o
+OBJ = main.o spreadsheet.o orderedset.o vector.o stack.o linked_list.o cell.o 
 
 all: spreadsheet
 
@@ -58,7 +58,7 @@ report: report.tex
 			exit 1; \
 		fi; \
 	}
-	@pdflatex report.tex
+	@pdflatex -interaction=nonstopmode -halt-on-error -file-line-error report.tex > /dev/null
 	@echo "Report generated as report.pdf"
 
 
@@ -71,21 +71,25 @@ spreadsheet: $(OBJ)
 main.o: main.c spreadsheet.h
 	$(CC) $(CFLAGS) -c main.c
 
-spreadsheet.o: spreadsheet.c spreadsheet.h orderedset.h stack.h linked_list.h
+spreadsheet.o: spreadsheet.c spreadsheet.h orderedset.h vector.h stack.h linked_list.h
 	$(CC) $(CFLAGS) -c spreadsheet.c
 
 orderedset.o: orderedset.c orderedset.h
 	$(CC) $(CFLAGS) -c orderedset.c
 
+vector.o: vector.c vector.h
+	$(CC) $(CFLAGS) -c vector.c
+
 
 stack.o: stack.c stack.h cell.h
 	$(CC) $(CFLAGS) -c stack.c
 
+# vector.h vector.c vector.o
 
 linked_list.o: linked_list.h cell.h
 	$(CC) $(CFLAGS) -c linked_list.c
 
-cell.o: cell.c cell.h orderedset.h
+cell.o: cell.c cell.h orderedset.h vector.h
 	$(CC) $(CFLAGS) -c cell.c
 
 orderedset_test: orderedset_test.o orderedset.o
@@ -94,26 +98,26 @@ orderedset_test: orderedset_test.o orderedset.o
 orderedset_test.o: orderedset_test.c orderedset.h
 	$(CC) $(CFLAGS) -c orderedset_test.c
 
-cell_test: cell_test.o cell.o orderedset.o
-	$(CC) $(CFLAGS) -o cell_test cell_test.o cell.o orderedset.o
+cell_test: cell_test.o cell.o orderedset.o vector.o
+	$(CC) $(CFLAGS) -o cell_test cell_test.o cell.o orderedset.o vector.o
 
-cell_test.o: cell_test.c cell.h orderedset.h
+cell_test.o: cell_test.c cell.h orderedset.h vector.h
 	$(CC) $(CFLAGS) -c cell_test.c
 
-stack_test: stack_test.o stack.o cell.o orderedset.o
-	$(CC) $(CFLAGS) -o stack_test stack_test.o stack.o cell.o orderedset.o
+stack_test: stack_test.o stack.o cell.o orderedset.o vector.o
+	$(CC) $(CFLAGS) -o stack_test stack_test.o stack.o cell.o orderedset.o vector.o
 
 stack_test.o: stack_test.c stack.h
 	$(CC) $(CFLAGS) -c stack_test.c
 
-linked_list_test: linked_list_test.o linked_list.o cell.o orderedset.o
-	$(CC) $(CFLAGS) -o linked_list_test linked_list_test.o linked_list.o cell.o orderedset.o
+linked_list_test: linked_list_test.o linked_list.o cell.o orderedset.o vector.o
+	$(CC) $(CFLAGS) -o linked_list_test linked_list_test.o linked_list.o cell.o orderedset.o vector.o
 
 linked_list_test.o: linked_list_test.c linked_list.h
 	$(CC) $(CFLAGS) -c linked_list_test.c
 
-spreadsheet_test: spreadsheet_test.o spreadsheet.o orderedset.o stack.o linked_list.o cell.o
-	$(CC) $(CFLAGS) -o spreadsheet_test spreadsheet_test.o spreadsheet.o orderedset.o stack.o linked_list.o cell.o -lm
+spreadsheet_test: spreadsheet_test.o spreadsheet.o orderedset.o stack.o linked_list.o cell.o vector.o
+	$(CC) $(CFLAGS) -o spreadsheet_test spreadsheet_test.o spreadsheet.o orderedset.o vector.o stack.o linked_list.o cell.o -lm 
 
 spreadsheet_test.o: spreadsheet_test.c spreadsheet.h
 	$(CC) $(CFLAGS) -c spreadsheet_test.c 
@@ -122,7 +126,7 @@ tester: test.c spreadsheet
 	$(CC) $(CFLAGS) -o test test.c
 
 scroll_test: scroll_test.o
-	$(CC) $(CFLAGS) -o scroll_test scroll_test.o spreadsheet.o orderedset.o stack.o linked_list.o cell.o -lm
+	$(CC) $(CFLAGS) -o scroll_test scroll_test.o spreadsheet.o orderedset.o vector.o stack.o linked_list.o cell.o -lm
 
 scroll_test.o: scroll_test.c 
 	$(CC) $(CFLAGS) -c scroll_test.c

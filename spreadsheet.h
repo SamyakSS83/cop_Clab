@@ -34,6 +34,7 @@ int spreadsheet_evaluate_function(Spreadsheet *sheet, const char *func, const ch
 int spreadsheet_evaluate_expression(Spreadsheet *sheet, const char *expr, Cell* cell);
 void v_inorder_traversal_helper(OrderedSetNode *node, char **array, int *index);
 int count_nodes(OrderedSetNode *node);
+void vector_collect_keys(Vector* vec, char ***array, int *size);
 void v_orderedset_collect_keys(OrderedSet *set, char ***array, int *size);
 int rec_find_cycle_using_stack(Spreadsheet*sheet, int r1,int r2 ,int c1,int c2,int range_bool, OrderedSet *visited, Node **top);
 int first_step_find_cycle(Spreadsheet *sheet, char *cell_name, int r1,int r2 ,int c1,int c2,int range_bool);

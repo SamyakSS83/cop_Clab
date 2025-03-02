@@ -25,7 +25,6 @@ void safe_strcpy(char *dest, size_t dest_size, const char *src)
     dest[dest_size - 1] = '\0';
 }
 
-
 /* ----------------
    Create/Destroy
    ---------------- */
@@ -53,8 +52,10 @@ Spreadsheet *spreadsheet_create(int rows, int cols)
             // printf("%s",cell_name);
             // spreadsheet_get_cell_name( r, c, cell_name, sizeof(cell_name));
             // Cell *new_cell = cell_create(r, c);
+            // fprintf(stderr, "Creating cell (%d, %d)\n", r, c);
             sheet->cells[cols * (r - 1) + (c - 1)] = cell_create(r, c);
-            
+            // fprintf(stderr, "Created cell (%d, %d)\n", r, c);
+
             if (!sheet->cells[cols * (r - 1) + (c - 1)]) // Check if allocation failed
             {
                 fprintf(stderr, "Memory allocation failed for cell (%d, %d)\n", r, c);
@@ -79,11 +80,14 @@ Spreadsheet *spreadsheet_create(int rows, int cols)
     return sheet;
 }
 
-void destroySpreadsheet (Spreadsheet*sheet){
+void destroySpreadsheet(Spreadsheet *sheet)
+{
     int col = sheet->cols;
-    for(int r=1;r<=sheet->rows;r++){
-        for(int c=1;c<=sheet->cols;c++){
-            cell_destroy(sheet->cells[col*(r-1)+(c-1)]);
+    for (int r = 1; r <= sheet->rows; r++)
+    {
+        for (int c = 1; c <= sheet->cols; c++)
+        {
+            cell_destroy(sheet->cells[col * (r - 1) + (c - 1)]);
         }
     }
     free(sheet->cells);
@@ -205,7 +209,8 @@ int spreadsheet_parse_cell_name(const Spreadsheet *sheet, const char *cell_name,
         return 0;
     }
     int j = i;
-    if(cell_name[j]=='0'){
+    if (cell_name[j] == '0')
+    {
         *out_row = *out_col = -1;
         return 0;
     }
@@ -217,7 +222,7 @@ int spreadsheet_parse_cell_name(const Spreadsheet *sheet, const char *cell_name,
         *out_row = *out_col = -1;
         return 0;
     }
-    
+
     *out_row = atoi(&cell_name[i]);
     if (*out_row > sheet->rows || *out_row <= 0)
     {
@@ -229,13 +234,15 @@ int spreadsheet_parse_cell_name(const Spreadsheet *sheet, const char *cell_name,
     return 1;
 }
 
-int isNumeric(const char *str) {
-    if (*str == '\0') return 0;  // Empty string is not an integer
+int isNumeric(const char *str)
+{
+    if (*str == '\0')
+        return 0; // Empty string is not an integer
 
     char *endptr;
-    strtol(str, &endptr, 10);  // Convert string to long
+    strtol(str, &endptr, 10); // Convert string to long
 
-    return (*endptr == '\0');  // If endptr points to '\0', it's a valid integer
+    return (*endptr == '\0'); // If endptr points to '\0', it's a valid integer
 }
 
 int find_depends(const char *formula, Spreadsheet *sheet, int *r1, int *r2, int *c1, int *c2, int *range_bool)
@@ -342,13 +349,10 @@ int find_depends(const char *formula, Spreadsheet *sheet, int *r1, int *r2, int 
     return 0;
 }
 
-
-
-
 /* ----------------
    Expression & Function
    ---------------- */
-int spreadsheet_evaluate_function(Spreadsheet *sheet, const char *func, const char *args, Cell *cell,const char*expr)
+int spreadsheet_evaluate_function(Spreadsheet *sheet, const char *func, const char *args, Cell *cell, const char *expr)
 {
     // fprintf(stderr, "[DEBUG] Evaluating function: %s(%s)\n", func, args);
     // SLEEP(value)
@@ -399,7 +403,8 @@ int spreadsheet_evaluate_function(Spreadsheet *sheet, const char *func, const ch
             }
         }
         // int val = spreadsheet_evaluate_expression(sheet, args);
-        if(val>0){
+        if (val > 0)
+        {
             sleep((unsigned int)val);
         }
 
@@ -408,9 +413,9 @@ int spreadsheet_evaluate_function(Spreadsheet *sheet, const char *func, const ch
 
     // Evaluate range
     int count = 0;
-    int r1,r2,c1,c2,range_bool;
-    find_depends(expr,sheet,&r1,&r2,&c1,&c2,&range_bool);
-    count = (r2-r1+1)*(c2-c1+1);
+    int r1, r2, c1, c2, range_bool;
+    find_depends(expr, sheet, &r1, &r2, &c1, &c2, &range_bool);
+    count = (r2 - r1 + 1) * (c2 - c1 + 1);
     // if (count == 0)
     // {
     //     if (cells)
@@ -422,12 +427,13 @@ int spreadsheet_evaluate_function(Spreadsheet *sheet, const char *func, const ch
     int k = 0;
     for (int i = r1; i <= r2; i++)
     {
-        for(int j=c1;j<=c2;j++){
+        for (int j = c1; j <= c2; j++)
+        {
             // Cell *c = ordereddict_get(sheet->cells, cells[i]);
             // int r_, c_;
             // spreadsheet_parse_cell_name(sheet, cells[i], &r_, &c_);
 
-            Cell *c = sheet->cells[sheet->cols * (i-1 ) + (j-1)];
+            Cell *c = sheet->cells[sheet->cols * (i - 1) + (j - 1)];
             if (c && c->error)
             {
                 cell->error = 1;
@@ -529,7 +535,7 @@ int spreadsheet_evaluate_expression(Spreadsheet *sheet, const char *expr, Cell *
         strncpy(args, expr + matches[2].rm_so, matches[2].rm_eo - matches[2].rm_so);
         args[matches[2].rm_eo - matches[2].rm_so] = '\0';
         regfree(&funcRegex);
-        return spreadsheet_evaluate_function(sheet, func, args, cell,expr);
+        return spreadsheet_evaluate_function(sheet, func, args, cell, expr);
     }
     regfree(&funcRegex);
 
@@ -729,14 +735,16 @@ int rec_find_cycle_using_stack(Spreadsheet *sheet, int r1, int r2, int c1, int c
         {
             // Cell *my_node = ordereddict_get(dict, start_key);
             // now my set is my_node->dependents
-            OrderedSet *my_set = my_node->dependents;
-            // orderedset_print(my_set);
-            // if (my_set->root == NULL)
-            //     fprintf(stderr, "[DEBUG]16\n");
             char **keys = NULL;
             int size = 0;
-            v_orderedset_collect_keys(my_set, &keys, &size);
-            // fprintf(stderr, "[DEBUG]17\n");
+            if (my_node->container == 0)
+            {
+                vector_collect_keys(my_node->dependents.dependents_vector, &keys, &size);
+            }
+            else
+            {
+                v_orderedset_collect_keys(my_node->dependents.dependents_set, &keys, &size);
+            }
 
             for (int i = 0; i < size; i++)
             {
@@ -752,16 +760,26 @@ int rec_find_cycle_using_stack(Spreadsheet *sheet, int r1, int r2, int c1, int c
                         // fprintf(stderr,"i think it should not be the case this should be in dict\n");
                         // if this changes nothing else changes so just check this cell alone
                         if (orderedset_contains(visited, keys[i]))
-                            for(int x=0;x<size;x++) free(keys[x]);
-                            if(keys) free(keys);
-                            
-                            return 1;
+                        {
+                            for (int x = 0; x < size; x++)
+                            {
+                                free(keys[x]);
+                            }
+                        }
+
+                        if (keys)
+                        {
+                            free(keys);
+                        }
+                        return 1;
                     }
                     push(top, neighbour_node);
                 }
             }
-            for(int x=0;x<size;x++) free(keys[x]);
-            if(keys) free(keys);
+            for (int x = 0; x < size; x++)
+                free(keys[x]);
+            if (keys)
+                free(keys);
             // Rethink about this
             // Cell * c = ordereddict_get(sheet->cells);
         }
@@ -793,6 +811,29 @@ int count_nodes(OrderedSetNode *node)
     if (node == NULL)
         return 0;
     return count_nodes(node->left) + count_nodes(node->right) + 1;
+}
+void vector_collect_keys(Vector *vec, char ***array, int *size)
+{
+    if (vec == NULL || vec->size == 0)
+    {
+        *array = NULL;
+        *size = 0;
+        return;
+    }
+
+    // First, find the number of nodes in the set
+    *size = 0;
+
+    *size = vec->size;
+
+    // Allocate memory for the array to store the keys;
+    *array = malloc(sizeof(char *) * (*size));
+
+    // Perform inorder traversal and collect the keys in the array
+    for (int i = 0; i < vec->size; i++)
+    {
+        (*array)[i] = strdup(vec->data[i]);
+    }
 }
 void v_orderedset_collect_keys(OrderedSet *set, char ***array, int *size)
 {
@@ -833,12 +874,13 @@ int first_step_find_cycle(Spreadsheet *sheet, char *cell_name, int r1, int r2, i
     // orderedset_print(new_depends);
     // Cell *node_of_start = ordereddict_get(sheet->cells, start);
     Cell *node_of_start = sheet->cells[sheet->cols * (r_ - 1) + (c_ - 1)];
-    if (!node_of_start){
+    if (!node_of_start)
+    {
         orderedset_destroy(visited);
         return 0;
     }
-        
-         // start was never in rhs of any formula before there can't be cyclic dependency
+
+    // start was never in rhs of any formula before there can't be cyclic dependency
     Node *top = createNode(node_of_start);
     // int xx = isEmpty(top);
     // if (!xx)
@@ -918,7 +960,7 @@ void remove_old_dependents(Spreadsheet *sheet, const char *cell_name)
                         // Cell *dep_cell = ordereddict_get(sheet->cells, ref);
                         // int r_, c_;
                         // spreadsheet_parse_cell_name(sheet, ref, &r_, &c_);
-                        Cell *dep_cell = sheet->cells[sheet->cols * (r) + (c)];
+                        Cell *dep_cell = sheet->cells[sheet->cols * (r ) + (c )];
                         if (!dep_cell)
                         {
                             // char * not_needed[64];
@@ -928,7 +970,7 @@ void remove_old_dependents(Spreadsheet *sheet, const char *cell_name)
                             // ordereddict_insert(sheet->cells, ref, dep_cell);
                             fprintf(stderr, "cell not found\n");
                         }
-                        orderedset_remove(dep_cell->dependents, cell_name);
+                        cell_dep_remove(dep_cell, cell_name);
 
                         // orderedset_insert(new_depends, result);
                     }
@@ -962,13 +1004,13 @@ void remove_old_dependents(Spreadsheet *sheet, const char *cell_name)
 
         if (r1 > 0)
         {
-            Cell *dep_cell = sheet->cells[sheet->cols * (r1 -1 ) + (c1 -1)];
-            orderedset_remove(dep_cell->dependents, cell_name);
+            Cell *dep_cell = sheet->cells[sheet->cols * (r1 - 1) + (c1 - 1)];
+            cell_dep_remove(dep_cell, cell_name);
         }
         if (r2 > 0)
         {
-            Cell *dep_cell = sheet->cells[sheet->cols * (r2 -1) + (c2 -1)];
-            orderedset_remove(dep_cell->dependents, cell_name);
+            Cell *dep_cell = sheet->cells[sheet->cols * (r2 - 1) + (c2 - 1)];
+            cell_dep_remove(dep_cell, cell_name);
         }
 
         // printf("ref -> %s\n", ref);
@@ -1057,7 +1099,7 @@ int v_spreadsheet_update_dependencies(Spreadsheet *sheet, const char *cell_name,
                             fprintf(stderr, "cell not found\n");
                         }
                         // fprintf(stderr, "%d %d %s\n", dep_cell->row, dep_cell->col, cell_name);
-                        orderedset_insert(dep_cell->dependents, cell_name);
+                        cell_dep_insert(dep_cell, cell_name);
 
                         // orderedset_insert(new_depends, result);
                     }
@@ -1078,7 +1120,7 @@ int v_spreadsheet_update_dependencies(Spreadsheet *sheet, const char *cell_name,
             // {
             //     return -1;
             // }
-            // break;
+            break;
         }
     }
     // it is not of the range form then :
@@ -1093,13 +1135,13 @@ int v_spreadsheet_update_dependencies(Spreadsheet *sheet, const char *cell_name,
 
         if (r1 > 0)
         {
-            Cell *dep_cell = sheet->cells[sheet->cols * (r1-1) + (c1-1)];
-            orderedset_insert(dep_cell->dependents, cell_name);
+            Cell *dep_cell = sheet->cells[sheet->cols * (r1 - 1) + (c1 - 1)];
+            cell_dep_insert(dep_cell, cell_name);
         }
         if (r2 > 0)
         {
-            Cell *dep_cell = sheet->cells[sheet->cols * (r2-1) + (c2-1)];
-            orderedset_insert(dep_cell->dependents, cell_name);
+            Cell *dep_cell = sheet->cells[sheet->cols * (r2 - 1) + (c2 - 1)];
+            cell_dep_insert(dep_cell, cell_name);
         }
 
         // printf("ref -> %s\n", ref);
@@ -1130,16 +1172,16 @@ Node_l *topo_sort(Spreadsheet *sheet, Cell *starting)
     while (!isEmpty(st_top))
     {
         Cell *now = peek(st_top);
-        // else {
-        // push_withInt(&st_top,now.data,-1);
-        // fprintf(stderr," ## %d %d \n",now->row,now->col);
-        OrderedSet *my_set = now->dependents;
-        // orderedset_print(my_set);
-        // if (my_set->root == NULL)
-        //     fprintf(stderr, "[DEBUG]16\n");
         char **keys = NULL;
         int size = 0;
-        v_orderedset_collect_keys(my_set, &keys, &size);
+        if (now->container == 0)
+        {
+            vector_collect_keys(now->dependents.dependents_vector, &keys, &size);
+        }
+        else
+        {
+            v_orderedset_collect_keys(now->dependents.dependents_set, &keys, &size);
+        }
         // int flag = 1;
         for (int i = 0; i < (size); i++)
         {
@@ -1174,10 +1216,12 @@ Node_l *topo_sort(Spreadsheet *sheet, Cell *starting)
             orderedset_insert(visited, cell_name);
         }
         // }
-    for(int x=0;x<size;x++) free(keys[x]);
-    if(keys) free(keys);
+        for (int x = 0; x < size; x++)
+            free(keys[x]);
+        if (keys)
+            free(keys);
     }
-    
+
     destroyStack(&st_top);
     orderedset_destroy(visited);
     return head;
@@ -1223,7 +1267,7 @@ void spreadsheet_set_cell_value(Spreadsheet *sheet, char *cell_name, const char 
     if (first_step_find_cycle(sheet, cell_name, r1, r2, c1, c2, range_bool))
     {
         // printf("Cycle Detected\n");
-         free(cpy_formula);
+        free(cpy_formula);
         safe_strcpy(status_out, status_size, "Cycle Detected");
         return;
     }
@@ -1259,7 +1303,7 @@ void spreadsheet_set_cell_value(Spreadsheet *sheet, char *cell_name, const char 
         // fprintf(stderr, "%d\n\n\n", x);
         curr = curr->next;
     }
-     free(cpy_formula);
+    free(cpy_formula);
     freeList(&head);
     safe_strcpy(status_out, status_size, "ok");
 }
@@ -1348,7 +1392,8 @@ int is_valid_command(Spreadsheet *sheet, char **cell_name, char **formula)
         regfree(&funcRegex);
         if (strcasecmp(func, "SLEEP") == 0)
         {
-            if(args[0]=='\0'){
+            if (args[0] == '\0')
+            {
                 return 0;
             }
             // Check if args is a valid integer

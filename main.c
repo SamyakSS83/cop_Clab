@@ -7,6 +7,7 @@
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
+    // fprintf(stderr, "Welcome to the spreadsheet program\n");
     if(argc != 3) {
         // stderr is used for printing to console the error message : it does not buffer the output,immediate action
         fprintf(stderr, "Usage: %s <rows> <cols>\n", argv[0]);
@@ -19,20 +20,18 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     double start_time = (double)time(NULL);
+    // fprintf(stderr, "Before spreadsheet_create\n");
     Spreadsheet *sheet = spreadsheet_create(rows, cols);
+    // fprintf(stderr, "After spreadsheet_create\n");
     double elapsed_time = 0.0;
     char status[64];
     strcpy(status, "ok");
-    int show = 2;
+    int show = 1;
 
     while(1) {
+        // fprintf(stderr, "Displaying spreadsheet\n");
         if(show) {
-            if(show==1){
-                show++;
-            }
-            else{
-                spreadsheet_display(sheet);
-            }
+            spreadsheet_display(sheet);
         }
         fflush(stdout);
         elapsed_time = (double)time(NULL) - start_time;

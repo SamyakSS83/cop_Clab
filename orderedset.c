@@ -240,7 +240,6 @@ static OrderedSetNode* remove_node(OrderedSetNode *root, const char *key) {
 
 void orderedset_remove(OrderedSet *set, const char *key) {
     set->root = remove_node(set->root, key);
-    
 }
 
 
