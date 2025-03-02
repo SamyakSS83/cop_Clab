@@ -53,15 +53,16 @@
 \section{Introduction}
 In this implementation of Spreadsheet, we have modeled the problem to be a directed acyclic graph. In order to ensure that the formulas are valid and conserved against individual cell value change, we have used topo sort and stacks to efficiently find the order of recalculation and manage dependencies upon changing the value of a cell.
 
-\section{Datastructures and Uses}
+\section{Data Structures and Uses}
 The following Datastrutures have been used in this implementation
 
 \begin{itemize}
     \item \textbf{Ordered Set (AVL Tree)}: To store the list of dependencies of a cell.
-    \item \textbf{Cell Struct}: To store the value, formula, location and dependents of a cell.
+    \item \textbf{Cell Structure}: To store the value, formula, location and dependents of a cell.
     \item \textbf{Directed Acyclic Graph}: To model and capture formula dependencies.
     \item \textbf{Linked List}: To store the order of operations after Topo sort.
     \item \textbf{Stack}: To replace recursion, allowing larger recursion depths.
+    \item \textbf{Vector}: To initially store the list of dependencies of a cell.
 \end{itemize}
 
 
@@ -76,10 +77,16 @@ The Cell struct is a fundamental data structure in our implementation that repre
     \item \textbf{value}: Stores the numerical value of the cell
     \item \textbf{error}: A flag indicating invalid arithmetic operations 
     \item \textbf{formula}: A character pointer storing the formula string used to calculate the cell's value
-    \item \textbf{dependents}: A pointer to an OrderedSet (implemented as an AVL tree) that stores references to all cells that use this cell in their formulas
+    \item \textbf{dependents}: A union of a Vector and an ordered set (implemented as an AVL tree) that store references to all cells that use this cell in their formulas
+    
 \end{itemize}
 
-The design ensures that each cell can maintain exactly one formula, which is consistent with spreadsheet functionality. The dependents list is crucial for efficient updates when a cell's value changes, as it allows us to identify and recalculate all affected cells in the correct order.
+
+\noindent{The design ensures that each cell can maintain exactly one formula, which is consistent with spreadsheet functionality. The dependents list is crucial for efficient updates when a cell's value changes, as it allows us to identify and recalculate all affected cells in the correct order.\\}
+
+
+\noindent{A vector has the most efficient space management, but extraction will take time in a vector, so for the first few commands (up to 3 dependencies),%edit here% 
+we store them in a vector. When the number of dependencies increases, we store the move and free the vector, and store them in an ordered set. This ensures that the performance is at par while increasing space optimization for the first few commands.}
 
 \subsection{OrderedSet Implementation}
 For efficiently storing the list of dependents for each cell, we evaluated two primary data structure options:
@@ -111,7 +118,7 @@ Our dependency management system incorporates several key components:
 
 \begin{figure}[h!]
     \centering
-    \includegraphics[width=0.8\textwidth]{flowchart.png}
+    \includegraphics[width=0.8\textwidth]{sysarch.png}
     \caption{This is the overview of system architecture}
     \label{fig:system_architecture}
 \end{figure}
