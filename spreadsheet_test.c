@@ -2,9 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 #include "spreadsheet.h"
 #include "cell.h"
 #include "orderedset.h"
+
 
 // Helper function to check cell values
 void assert_cell_value(Spreadsheet *sheet, const char *cell_name, int expected_value, int expected_error) {
@@ -516,6 +518,29 @@ void test_basic_arithmetic() {
     free(sheet);
 }
 
+
+char vector_contains(Vector *vec, const char *str) {
+    for (int16_t i = 0; i < vec->size; i++) {
+        if (strcmp(vec->data[i], str) == 0) {
+            return 1; // String found
+        }
+    }
+    return 0; // String not found
+}
+
+char cell_contains(Cell*cell,char *key){
+    if (cell->dependents_initialised==0){
+        return 0;
+    }
+    else if (cell->container==0){
+       Vector* vec = cell->dependents.dependents_vector;
+       return vector_contains(vec,key);
+    }
+    else {
+        return orderedset_contains(cell->dependents.dependents_set,key);
+    }
+}
+
 // Test cell references and dependencies
 void test_cell_dependencies() {
     printf("\n====== Testing cell dependencies ======\n");
@@ -567,18 +592,16 @@ void test_cell_dependencies() {
 
     // Verify dependency tracking
     Cell *cell_a1 = sheet->cells[0];  // A1
-    assert(cell_a1->dependents != NULL);
-    assert(orderedset_contains(cell_a1->dependents, "B1"));
-    assert(orderedset_contains(cell_a1->dependents, "D1"));
-    assert(orderedset_contains(cell_a1->dependents, "D2"));
-    assert(orderedset_contains(cell_a1->dependents, "D3"));
-    assert(orderedset_contains(cell_a1->dependents, "D4"));
-    assert(orderedset_contains(cell_a1->dependents, "D5"));
-    assert(orderedset_contains(cell_a1->dependents, "E1"));
+    assert(cell_contains(cell_a1, "B1"));
+    assert(cell_contains(cell_a1, "D1"));
+    assert(cell_contains(cell_a1, "D2"));
+    assert(cell_contains(cell_a1, "D3"));
+    assert(cell_contains(cell_a1, "D4"));
+    assert(cell_contains(cell_a1, "D5"));
+    assert(cell_contains(cell_a1, "E1"));
 
     Cell *cell_b1 = sheet->cells[1];  // B1
-    assert(cell_b1->dependents != NULL);
-    assert(orderedset_contains(cell_b1->dependents, "C1"));
+    assert(cell_contains(cell_b1, "C1"));
 
     // now let's change formulas and check if old depedencies are removed or not 
 
@@ -613,24 +636,24 @@ void test_cell_dependency_updates() {
     // assert_cell_value(sheet, "B1", 15, 0);
 
     // Verify dependencies
-    assert(orderedset_contains(sheet->cells[0]->dependents, "B1")); // A1 -> B1
-    assert(orderedset_contains(sheet->cells[100]->dependents, "B1")); // A2 -> B1
+    assert(cell_contains(sheet->cells[0], "B1")); // A1 -> B1
+    assert(cell_contains(sheet->cells[100], "B1")); // A2 -> B1
 
     // Change formula of B1 (remove dependency on A1)
     set_cell(sheet, "B1", "A2 * 2");
     // assert_cell_value(sheet, "B1", 20, 0); // (10 * 2)
 
     // A1 should no longer be a dependency of B1
-    assert(!orderedset_contains(sheet->cells[0]->dependents, "B1"));
-    assert(orderedset_contains(sheet->cells[100]->dependents, "B1")); // A2 should still be there
+    assert(!cell_contains(sheet->cells[0], "B1"));
+    assert(cell_contains(sheet->cells[100], "B1")); // A2 should still be there
 
     // Change formula of B1 again (make it dependent on A3 instead)
     set_cell(sheet, "B1", "A3 + 5");
     // assert_cell_value(sheet, "B1", 25, 0);
 
     // A2 should no longer be a dependency of B1
-    assert(!orderedset_contains(sheet->cells[100]->dependents, "B1"));
-    assert(orderedset_contains(sheet->cells[200]->dependents, "B1")); // A3 is new dependency
+    assert(!cell_contains(sheet->cells[100], "B1"));
+    assert(cell_contains(sheet->cells[200], "B1")); // A3 is new dependency
 
     // Test dependencies on aggregation functions
     set_cell(sheet, "D1", "MAX(A1:A4)");
@@ -638,8 +661,8 @@ void test_cell_dependency_updates() {
 
     // Ensure all A1:A4 cells track dependencies
     for (int i = 0; i < 4; i++) {
-        assert(orderedset_contains(sheet->cells[i*100]->dependents, "D1"));
-        assert(orderedset_contains(sheet->cells[i*100]->dependents, "D2"));
+        assert(cell_contains(sheet->cells[i*100], "D1"));
+        assert(cell_contains(sheet->cells[i*100], "D2"));
     }
 
     // Change D1 formula (should remove dependencies from A1:A4)
@@ -647,18 +670,18 @@ void test_cell_dependency_updates() {
     // assert_cell_value(sheet, "D1", 15, 0);
 
     // A3 and A4 should no longer be dependencies for D1
-    assert(!orderedset_contains(sheet->cells[200]->dependents, "D1"));
-    assert(!orderedset_contains(sheet->cells[300]->dependents, "D1"));
-    assert(orderedset_contains(sheet->cells[0]->dependents, "D1"));
-    assert(orderedset_contains(sheet->cells[100]->dependents, "D1"));
+    assert(!cell_contains(sheet->cells[200], "D1"));
+    assert(!cell_contains(sheet->cells[300], "D1"));
+    assert(cell_contains(sheet->cells[0], "D1"));
+    assert(cell_contains(sheet->cells[100],"D1"));
 
     // Test SLEEP function (should not affect dependencies)
     set_cell(sheet, "E1", "SLEEP(A1)");
-    assert(orderedset_contains(sheet->cells[0]->dependents, "E1"));
+    assert(cell_contains(sheet->cells[0], "E1"));
     
     set_cell(sheet, "E1", "SLEEP(A2)");
-    assert(!orderedset_contains(sheet->cells[0]->dependents, "E1"));
-    assert(orderedset_contains(sheet->cells[100]->dependents, "E1"));
+    assert(!cell_contains(sheet->cells[0], "E1"));
+    assert(cell_contains(sheet->cells[100], "E1"));
 
     // Cleanup
     for (int r = 1; r <= 100; r++)
