@@ -1,7 +1,7 @@
 # Makefile
 
 CC = gcc
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -g -O3
 
 OBJ = main.o spreadsheet.o orderedset.o vector.o stack.o linked_list.o cell.o 
 
