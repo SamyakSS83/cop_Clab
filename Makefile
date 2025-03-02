@@ -8,8 +8,7 @@ OBJ = main.o spreadsheet.o orderedset.o vector.o stack.o linked_list.o cell.o
 all: spreadsheet
 
 
-
-test: orderedset_test spreadsheet_test stack_test linked_list_test tester scroll_test vector_test
+test: orderedset_test spreadsheet_test stack_test linked_list_test tester scroll_test vector_test cell_test
 	@echo "Running tests"
 	@echo "Orderedset test"
 	@echo "----------------------------------------------------------------------------------------------------------"
@@ -19,7 +18,7 @@ test: orderedset_test spreadsheet_test stack_test linked_list_test tester scroll
 	./vector_test
 	@echo "Cell test"
 	@echo "----------------------------------------------------------------------------------------------------------"
-	# ./cell_test
+	./cell_test
 	@echo "Stack test"
 	@echo "----------------------------------------------------------------------------------------------------------"
 	./stack_test
@@ -43,6 +42,18 @@ test: orderedset_test spreadsheet_test stack_test linked_list_test tester scroll
 	@./test 100 100 input_unrec_cmds.txt output_unrec_cmds.txt
 	@echo "----------------------------------------------------------------------------------------------------------"
 	@./test 100 100 input_sleep.txt output_sleep.txt
+	@echo "----------------------------------------------------------------------------------------------------------"
+	@echo "----------------------------------------------------------------------------------------------------------"
+	@./test 100 100 input_cycle1.txt output_cycle1.txt
+	@echo "----------------------------------------------------------------------------------------------------------"
+	@echo "----------------------------------------------------------------------------------------------------------"
+	@./test 100 100 input_out_of_range.txt output_out_of_range.txt
+	@echo "----------------------------------------------------------------------------------------------------------"
+	@echo "----------------------------------------------------------------------------------------------------------"
+	@./test 100 100 input_scroll_test.txt output_scroll_test.txt
+	@echo "----------------------------------------------------------------------------------------------------------"
+	@echo "----------------------------------------------------------------------------------------------------------"
+	@./test 100 100 input_100x100.txt output_100x100.txt
 	@echo "----------------------------------------------------------------------------------------------------------"
 	@echo "All tests passed"
 
