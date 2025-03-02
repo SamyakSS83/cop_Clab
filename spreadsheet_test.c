@@ -672,7 +672,81 @@ void test_cell_dependency_updates() {
     free(sheet->cells);
     free(sheet);
 }
+void test_topo_sort() {
+    printf("\n====== Testing Topological Sort ======\n");
 
+    // Create a spreadsheet
+    Spreadsheet *sheet = spreadsheet_create(100, 100);
+
+    // Initialize data cells A1:A10
+    for (int i = 1; i <= 10; i++) {
+        char cell[10];
+        sprintf(cell, "A%d", i);
+        set_cell(sheet, cell, "1"); // Assign values
+    }
+
+    // Set formulas in B1:B5
+    set_cell(sheet, "B1", "SUM(A1:A10)");
+    set_cell(sheet, "B2", "MAX(A1:A10)");
+    set_cell(sheet, "B3", "MIN(A1:A10)");
+    set_cell(sheet, "B4", "AVG(A1:A10)");
+    set_cell(sheet, "B5", "STDEV(A1:A10)");
+
+    // Set formulas in C1:C5
+    set_cell(sheet, "C1", "SUM(B1:B5)");
+    set_cell(sheet, "C2", "MAX(B1:B5)");
+    set_cell(sheet, "C3", "MIN(B1:B5)");
+    set_cell(sheet, "C4", "AVG(B1:B5)");
+    set_cell(sheet, "C5", "STDEV(B1:B5)");
+
+    // Run topological sort starting from A1
+    Node_l *sorted_list = topo_sort(sheet, sheet->cells[0]); // Assuming A1 is at index 0
+
+    // Expected order:
+    // A1→ (B1, B2, B3, B4, B5) → (C1, C2, C3, C4, C5)
+
+    int stage = 0; // 0 = processing A1, 1 = processing B1:B5, 2 = processing C1:C5
+    Node_l *current = sorted_list;
+    int counter = 0;
+    while (current != NULL) {
+        int row = current->data->row;
+        int col = current->data->col;
+
+        // Stage 0: Processing A1:A10
+        if(counter ==0){
+            assert(row==1 && col==1);
+        }
+        else if (counter>=1 && counter<=5){
+            assert(row>=1 && row<=5 && col==2);
+        }
+        else if (counter>=6 && counter<=10){
+            assert(row>=1 && row<=5 && col==3);
+
+        }
+        else {
+            printf("Unexpected cell in topological order: (%d, %d)\n", row, col);
+            assert(0);
+        }
+        counter++;
+
+        current = current->next;
+    }
+
+    // Cleanup
+    freeList(&sorted_list);
+    for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+    free(sheet->cells);
+    free(sheet);
+
+    printf("Topological sorting test passed!\n");
+}
 // Test cycle detection
 void test_cycle_detection() {
     printf("\n====== Testing cycle detection ======\n");
@@ -1052,8 +1126,11 @@ int main() {
     test_spreadsheet_create();
     test_column_letter_conversion();
     test_cell_name_helpers();
+    test_spreadsheet_evaluate_expression();
     test_basic_arithmetic();
     test_cell_dependencies();
+    test_cell_dependency_updates();
+    test_topo_sort();
     test_cycle_detection();
     test_range_functions();
     test_sleep_function();
