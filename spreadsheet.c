@@ -260,7 +260,7 @@ int find_depends(const char *formula, Spreadsheet *sheet, int *r1, int *r2, int 
             // printf("%s", only_range);
             int col1, row1, col2, row2;
             char col_start[10], col_end[10];
-            if (sscanf(formula, "%[A-Z]%d:%[A-Z]%d", col_start, &row1, col_end, &row2) == 4)
+            if (sscanf(only_range, "%[A-Z]%d:%[A-Z]%d", col_start, &row1, col_end, &row2) == 4)
             {
                 col1 = col_to_index(col_start);
                 col2 = col_to_index(col_end);
@@ -895,7 +895,7 @@ void remove_old_dependents(Spreadsheet *sheet, const char *cell_name)
             char col_start[10], col_end[10];
 
             // Parse range format like "A1:B3"
-            if (sscanf(cpy_formula, "%[A-Z]%d:%[A-Z]%d", col_start, &row1, col_end, &row2) == 4)
+            if (sscanf(only_range, "%[A-Z]%d:%[A-Z]%d", col_start, &row1, col_end, &row2) == 4)
             {
                 col1 = col_to_index(col_start);
                 col2 = col_to_index(col_end);
