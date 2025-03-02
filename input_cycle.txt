@@ -1,3 +1,22 @@
-A1=B1*0
-B1=C1
-C1=A1
+B1=MAX(A1:A20)
+C1=SUM(B1:B30)
+D2=MIN(C1:C20)
+A1=AVG(D1:D10)
+A1=AVG(E1:E10)
+E3=SLEEP(E1)
+A10=SLEEP(-E3)
+E4=5
+enable_output
+E1=E4/A11
+disable_output
+scroll_to E10
+d
+E1=2
+A2=SUM(I1:I10)
+I1=3
+I3=-1*8
+I4=I1+-I2
+I5=-2*-9
+I6=-9/-3
+
+
