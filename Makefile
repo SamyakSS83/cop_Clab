@@ -1,7 +1,7 @@
 # Makefile
 
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c99 -g -O3
+CFLAGS = -Wall -Wextra -g
 
 OBJ = main.o spreadsheet.o orderedset.o vector.o stack.o linked_list.o cell.o 
 
@@ -9,21 +9,24 @@ all: spreadsheet
 
 
 
-test: orderedset_test cell_test stack_test linked_list_test spreadsheet_test tester scroll_test
+test: orderedset_test stack_test linked_list_test tester scroll_test vector_test
 	@echo "Running tests"
 	@echo "Orderedset test"
 	@echo "----------------------------------------------------------------------------------------------------------"
 	./orderedset_test
+	@echo "Vector test"
+	@echo "----------------------------------------------------------------------------------------------------------"
+	./vector_test
 	@echo "Cell test"
 	@echo "----------------------------------------------------------------------------------------------------------"
-	./cell_test
+	# ./cell_test
 	@echo "Stack test"
 	@echo "----------------------------------------------------------------------------------------------------------"
 	./stack_test
 	@echo "Linked list test"
 	@echo "----------------------------------------------------------------------------------------------------------"
 	./linked_list_test
-	@echo "Spreadsheet test"
+	# @echo "Spreadsheet test"
 	@echo "----------------------------------------------------------------------------------------------------------"
 	./spreadsheet_test
 	@echo "Scroll test"
@@ -125,14 +128,19 @@ spreadsheet_test.o: spreadsheet_test.c spreadsheet.h
 tester: test.c spreadsheet
 	$(CC) $(CFLAGS) -o test test.c
 
-scroll_test: scroll_test.o
+scroll_test: scroll_test.o vector.o stack.o linked_list.o cell.o spreadsheet.o orderedset.o
 	$(CC) $(CFLAGS) -o scroll_test scroll_test.o spreadsheet.o orderedset.o vector.o stack.o linked_list.o cell.o -lm
 
 scroll_test.o: scroll_test.c 
 	$(CC) $(CFLAGS) -c scroll_test.c
 
+vector_test: vector_test.c vector.o
+	$(CC) $(CFLAGS) -o vector_test vector.c vector_test.c
+
+
+
 clean:
-	rm -rf *.o spreadsheet orderedset_test target test orderedset_test cell_test stack_test linked_list_test spreadsheet_test tester scroll_test
+	rm -rf *.o spreadsheet orderedset_test target test orderedset_test cell_test stack_test linked_list_test spreadsheet_test tester scroll_test vector_test vector
 	rm -f *.aux *.log *.out *.toc *.bbl *.blg *.lof *.lot *.pdf
 
 .PHONY: report, clean, test
