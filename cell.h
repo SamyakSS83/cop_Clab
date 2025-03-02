@@ -12,6 +12,7 @@ typedef struct Cell {
     int16_t col;
     char error;
     char container;
+    char dependents_initialised;
     int value;
     char *formula;
     union Dependents{
