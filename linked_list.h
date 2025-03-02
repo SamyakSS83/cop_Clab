@@ -1,9 +1,7 @@
 #ifndef LINKED_LIST_H
 #define LINKED_LIST_H
-#include "spreadsheet.h"
 #include "cell.h"
 #include "orderedset.h"
-#include "ordereddict.h"
 
 // Define the structure for a node
 typedef struct Node_l {
