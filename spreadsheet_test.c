@@ -61,6 +61,15 @@ void test_spreadsheet_create() {
     
     // Cleanup
     // TODO: Implement spreadsheet_destroy
+     for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+
     free(sheet->cells);
     free(sheet);
 }
@@ -163,6 +172,15 @@ void test_cell_name_helpers() {
     printf("✓ Empty string correctly identified as invalid\n");
     
     // Cleanup
+     for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+
     free(sheet->cells);
     free(sheet);
 }
@@ -202,6 +220,15 @@ void test_basic_arithmetic() {
     assert_cell_value(sheet, "C2", 0, 1); // Division by zero should set error flag
     
     // Cleanup
+     for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+
     free(sheet->cells);
     free(sheet);
 }
@@ -235,6 +262,15 @@ void test_cell_dependencies() {
     assert(orderedset_contains(cell_a1->dependents, "B1"));
     
     // Cleanup
+     for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+
     free(sheet->cells);
     free(sheet);
 }
@@ -275,6 +311,15 @@ void test_cycle_detection() {
     assert(strcmp(status, "Cycle Detected") == 0);
     
     // Cleanup
+     for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+
     free(sheet->cells);
     free(sheet);
 }
@@ -342,6 +387,15 @@ void test_range_functions() {
     printf("Attempting invalid range SUM(A5:A1): %s\n", status);
     
     // Cleanup
+     for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+
     free(sheet->cells);
     free(sheet);
 }
@@ -367,6 +421,15 @@ void test_sleep_function() {
     assert_cell_value(sheet, "A3", 0, 0);
     
     // Cleanup
+     for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+
     free(sheet->cells);
     free(sheet);
 }
@@ -398,6 +461,15 @@ void test_edge_cases() {
     assert_cell_value(sheet, "A5", 0, 1);
     
     // Cleanup
+     for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+
     free(sheet->cells);
     free(sheet);
 }
@@ -446,6 +518,15 @@ void test_command_validation() {
     printf("✓ 'A1=SUM(Z10:A1)' is invalid\n");
     
     // Cleanup
+     for (int r = 1; r <= 100; r++)
+    {
+        for (int c = 1; c <= 100; c++)
+        {
+            cell_destroy(sheet->cells[100*(r-1)+(c-1)]);
+
+        }
+    }
+
     free(sheet->cells);
     free(sheet);
 }
