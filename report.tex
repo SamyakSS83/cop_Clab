@@ -122,9 +122,12 @@ In our testing suite, we have done unit testing as well as Blackbox testing.
 The following edge cases were covered:
 
 \begin{itemize}
-    \item \textbf{Cyclic Dependency}: We tested if the system can detect cyclic dependencies between cells. The system correctly identifies circular dependencies and raises an error message while rejecting the formula (tested by \texttt{input\_cycle.txt} and \texttt{spreadsheet\_test.c}).
-    \item \textbf{Invalid Formula}: In addition to the well-defined signatures, we have given support for categorizing numerals with \(+\) and \(-\) signs, so inputs like \(1++1\) and \(1+-1\) are considered valid. All other inputs and out-of-bound inputs are raised as invalid (tested by \texttt{input\_arbit.txt}, \texttt{input\_unrec\_cmds.txt} and \texttt{spreadsheet\_test.c}).
-    \item \textbf{Sleep Cells}
+    \item \textbf{Cyclic Dependency}: We tested if the system can detect cyclic dependencies between cells. The system correctly identifies circular dependencies and raises an error message while rejecting the formula. (tested by \texttt{input\_cycle.txt} and \texttt{spreadsheet\_test.c}).
+    \item \textbf{Invalid Formula}: In addition to the well-defined signatures, we have given support for categorizing numerals with \(+\) and \(-\) signs, so inputs like \(1++1\) and \(1+-1\) are considered valid. All other inputs and out-of-bound inputs are raised as invalid. We do not support arbitary capitalzation and arbitary spacing in the input. (tested by \texttt{input\_arbit.txt}, \texttt{input\_unrec\_cmds.txt} and \texttt{spreadsheet\_test.c}).
+    \item \textbf{Sleep Cells}: We tested if the normal sleep function works as expected. We tested for cascaded sleep cells and their behavior upon changing the base of the cascade. We also tested for SLEEP(num), where num is a negative number. (tested by \texttt{input\_sleep.txt} and \texttt{spreadsheet\_test.c}).
+    \item \textbf{Invalid Arithmeic}: We tested if logically invalid arithmetic operations, such as division by zero, and its cascades are flagged correctly by showing ERR on display. (tested by \texttt{input\_checks\_err.txt})
+    \item \textbf{Scrolling}: We unit-tested the scrolling nature to match the specifications of the assignment. (tested by \texttt{scroll\_test.c})
+    \item \textbf{Datastructures Correctness}: We unit tested for the correctness and robustness of AVL tree, Linked List, Cell struct and Stack. (tested by \texttt{orderedset\_test.c}, \texttt{linked\_list\_test.c}, \texttt{cell\_test.c} and \texttt{stack\_test.c})
 \end{itemize}
 
 
