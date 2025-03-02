@@ -14,6 +14,7 @@ Cell* cell_create(int row, int col) {
     cell->formula = NULL;
     cell->container = 0;
     cell->dependents_initialised = 0;
+    cell->dependents.dependents_vector = NULL;
     return cell;
 }
 
