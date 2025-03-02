@@ -14,6 +14,8 @@ typedef struct Node {
 
 // Function prototypes for stack operations
 Node* createNode(Cell* data);
+
+void destroyStack(Node** top);
 void push(Node** top, Cell* data);
 Cell* pop(Node** top);
 Cell* peek(Node* top);
