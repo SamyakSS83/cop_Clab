@@ -3,16 +3,18 @@
 #define CELL_H
 
 #include "orderedset.h"
+#include <stdint.h>
+
 
 typedef struct Cell {
-    int row;
-    int col;
+    int16_t row;
+    int16_t col;
+    char error;
     int value;
-    int error;
     char *formula;
-    OrderedSet *dependencies;
     OrderedSet *dependents;
 } Cell;
+
 
 // Function to create a cell
 Cell* cell_create(int row, int col);
