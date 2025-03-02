@@ -163,7 +163,6 @@ void orderedset_inorder_traversal(OrderedSet *set, void (*func)(const char*)) {
 //     orderedset_inorder_traversal(set, puts);
 // }
 
-// ...existing code...
 
 // Add the wrapper function
 void print_node(const char *str) {
@@ -175,7 +174,7 @@ void orderedset_print(OrderedSet *set) {
     orderedset_inorder_traversal(set, print_node);
 }
 
-// ...existing code...
+
 
 // Helper function to find the minimum value node in a subtree
 static OrderedSetNode* find_min(OrderedSetNode *node) {
@@ -218,6 +217,24 @@ static OrderedSetNode* remove_node(OrderedSetNode *root, const char *key) {
         // Delete the inorder successor
         root->right = remove_node(root->right, temp->key);
     }
+
+    root->height = max_orderedset(height_node(root->left), height_node(root->right)) + 1;
+    int balance = get_balance(root);
+
+    // Balance the tree
+    if (balance > 1 && get_balance(root->left) >= 0)
+        return right_rotate(root);
+    if (balance > 1 && get_balance(root->left) < 0) {
+        root->left = left_rotate(root->left);
+        return right_rotate(root);
+    }
+    if (balance < -1 && get_balance(root->right) <= 0)
+        return left_rotate(root);
+    if (balance < -1 && get_balance(root->right) > 0) {
+        root->right = right_rotate(root->right);
+        return left_rotate(root);
+    }
+    
     return root;
 }
 
